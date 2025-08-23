@@ -1,0 +1,15 @@
+.idea
+venv/
+.env
+db.sqlite3
+image/
+media/
+/migrations/
+**/migrations/**.py
+data
+logs/
+**/__pycache__/
+
+guidelines/
+pipfile
+pipfile.lock

@@ -1,0 +1,12 @@
+To configure this app include in your Installed app
+'account'
+
+It relies on the:
+-  'django_lifecycle' package so install 'pip install django-lifecycle' and add it to the installed package as : 'django_lifecycle_checks',
+- install ' pip install djangorestframework-simplejwt', add to installed apps ''
+
+
+This module support:
+- User creation.
+- Profile management 
+- 

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blakkart - Login Successful</title>
+  <style type="text/css">
+    /* Base Styles */
+    .email-body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+      color: #333333;
+      line-height: 1.6;
+    }
+
+    .email-container {
+      width: 600px;
+      margin: auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Header Styles */
+    .email-header {
+      background: linear-gradient(135deg, rgb(230, 0, 38) 0%, rgb(200, 0, 30) 100%);
+      padding: 30px 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .email-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .logo {
+      width: 180px;
+      display: block;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-icon {
+      background: rgba(255, 255, 255, 0.2);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 20px auto 0;
+      font-size: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Content Styles */
+    .content-block {
+      padding: 40px 30px;
+      background-color: #ffffff;
+    }
+
+    .content-title {
+      margin: 0 0 20px 0;
+      font-size: 28px;
+      line-height: 34px;
+      color: rgb(230, 0, 38);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .content-subtitle {
+      margin: 0 0 25px 0;
+      font-size: 18px;
+      line-height: 24px;
+      color: #666666;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .greeting {
+      margin: 0 0 20px 0;
+      font-size: 16px;
+      line-height: 24px;
+      color: #333333;
+    }
+
+    .message-text {
+      margin: 0 0 25px 0;
+      font-size: 16px;
+      line-height: 26px;
+      color: #555555;
+    }
+
+    /* Success Card */
+    .success-card {
+      background: linear-gradient(135deg, #e8f5e8 0%, #f0f9f0 100%);
+      border: 2px solid #4caf50;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 25px 0;
+      text-align: center;
+      position: relative;
+    }
+
+    .success-card::before {
+      content: '✓';
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4caf50;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .success-title {
+      margin: 10px 0 15px 0;
+      font-size: 20px;
+      font-weight: 600;
+      color: #2e7d32;
+    }
+
+    .success-details {
+      margin: 0;
+      font-size: 14px;
+      color: #388e3c;
+      line-height: 20px;
+    }
+
+    /* Login Details */
+    .login-details {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 25px 0;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: #495057;
+      font-size: 14px;
+    }
+
+    .detail-value {
+      color: #6c757d;
+      font-size: 14px;
+      text-align: right;
+    }
+
+    /* Security Notice */
+    .security-notice {
+      padding: 20px;
+      background: linear-gradient(135deg, #fff3cd 0%, #fef9e7 100%);
+      border-left: 4px solid #ffc107;
+      border-radius: 8px;
+      margin: 25px 0;
+    }
+
+    .security-title {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      font-weight: 600;
+      color: #856404;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .security-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 20px;
+      color: #856404;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      text-align: center;
+      margin: 30px 0;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 28px;
+      margin: 0 10px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, rgb(230, 0, 38) 0%, rgb(200, 0, 30) 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(230, 0, 38, 0.3);
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      color: rgb(230, 0, 38);
+      border: 2px solid rgb(230, 0, 38);
+    }
+
+    /* Footer */
+    .email-footer {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      padding: 30px 20px;
+      text-align: center;
+      color: #ecf0f1;
+    }
+
+    .footer-text {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .footer-links {
+      margin: 15px 0 0 0;
+    }
+
+    .footer-link {
+      color: #bdc3c7;
+      text-decoration: underline;
+      margin: 0 10px;
+      font-size: 14px;
+    }
+
+    .footer-link:hover {
+      color: #ecf0f1;
+    }
+
+    /* Responsive Design */
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+      }
+      
+      .content-block {
+        padding: 25px 20px !important;
+      }
+      
+      .logo {
+        width: 140px !important;
+      }
+      
+      .content-title {
+        font-size: 24px !important;
+        line-height: 30px !important;
+      }
+      
+      .header-icon {
+        width: 60px !important;
+        height: 60px !important;
+        font-size: 30px !important;
+      }
+      
+      .detail-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 5px !important;
+      }
+      
+      .detail-value {
+        text-align: left !important;
+      }
+      
+      .btn {
+        display: block !important;
+        margin: 10px 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+    }
+
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+      .email-body {
+        background-color: #1a1a1a;
+      }
+      
+      .email-container {
+        background-color: #2d2d2d;
+      }
+      
+      .content-block {
+        background-color: #2d2d2d;
+      }
+      
+      .greeting,
+      .message-text {
+        color: #e0e0e0;
+      }
+      
+      .login-details {
+        background-color: #3a3a3a;
+      }
+    }
+  </style>
+</head>
+<body class="email-body">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td>
+        <!-- Email Container -->
+        <table class="email-container" role="presentation" align="center" border="0" cellpadding="0" cellspacing="0">
+          <!-- Header -->
+          <tr>
+            <td class="email-header">
+              <img src="https://res.cloudinary.com/dlvbn9uct/image/upload/sjifrqj1q5mb5vrqlxhr.png" alt="Blakkart" class="logo">
+              <div class="header-icon">🎉</div>
+            </td>
+          </tr>
+          
+          <!-- Body -->
+          <tr>
+            <td class="content-block">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td>
+                    <h1 class="content-title">Welcome Back!</h1>
+                    <p class="content-subtitle">You've successfully logged into your Blakkart account</p>
+                    
+                    <p class="greeting">Hello {{user.first_name|default:user.email.split.0}},</p>
+                    
+                    <p class="message-text">
+                      Great to see you again! You've successfully logged into your Blakkart account. 
+                      We're excited to help you discover amazing products and connect with our community of sellers and buyers.
+                    </p>
+                  </td>
+                </tr>
+                
+                <!-- Success Card -->
+                <tr>
+                  <td>
+                    <div class="success-card">
+                      <h2 class="success-title">Login Successful</h2>
+                      <p class="success-details">
+                        Your account is secure and ready to use. Start exploring our marketplace!
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Login Details -->
+                <tr>
+                  <td>
+                    <div class="login-details">
+                      <div class="detail-row">
+                        <span class="detail-label">📧 Email:</span>
+                        <span class="detail-value">{{user.email}}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">🕒 Login Time:</span>
+                        <span class="detail-value">{{login_time|date:"M d, Y g:i A"}}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">🌍 Location:</span>
+                        <span class="detail-value">{{user_location|default:"Unknown"}}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span class="detail-label">📱 Device:</span>
+                        <span class="detail-value">{{user_device|default:"Web Browser"}}</span>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Action Buttons -->
+                <tr>
+                  <td class="action-buttons">
+                    <a href="{{shop_url}}" class="btn btn-primary">Start Shopping</a>
+                    <a href="{{profile_url}}" class="btn btn-secondary">View Profile</a>
+                  </td>
+                </tr>
+                
+                <!-- Security Notice -->
+                <tr>
+                  <td>
+                    <div class="security-notice">
+                      <h3 class="security-title">
+                        🔒 Security Notice
+                      </h3>
+                      <p class="security-text">
+                        If this wasn't you, please secure your account immediately by changing your password 
+                        and contacting our support team. We take your account security seriously.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td class="email-footer">
+              <p class="footer-text">This is an automated message, please do not reply.</p>
+              <p class="footer-text">&copy; 2024 Blakkart. All rights reserved.</p>
+              <p class="footer-text">Ohio - HQ</p>
+              <div class="footer-links">
+                <a href="{{help_center_url}}" class="footer-link">Help Center</a>
+                <a href="{{privacy_policy_url}}" class="footer-link">Privacy Policy</a>
+                <a href="{{security_url}}" class="footer-link">Security</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
