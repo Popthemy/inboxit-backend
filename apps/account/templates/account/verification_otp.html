@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blakkrt- Your Verification Code</title>
+  <style type="text/css">
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        width: 100% !important;
+      }
+      .content-block {
+        padding: 15px !important;
+      }
+      .logo {
+        width: 120px !important;
+      }
+      .pin-container {
+        font-size: 28px !important;
+      }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333333;">
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+      <td>
+        <!-- Email Container -->
+        <table class="email-container" role="presentation" align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="margin: auto;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 20px 0; text-align: center; border-top: 4px solid rgb(230, 0, 38);">
+              <img src="https://res.cloudinary.com/dlvbn9uct/image/upload/sjifrqj1q5mb5vrqlxhr.png" alt="Blakkart" class="logo" width="180" style="display: block; margin: 0 auto;">
+            </td>
+          </tr>
+          <!-- Body -->
+          <tr>
+            <td class="content-block" style="background-color: #ffffff; padding: 30px;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                <tr>
+                  <td>
+                    <h1 style="margin: 0 0 20px 0; font-size: 24px; line-height: 30px; color:rgb(230, 0, 38); font-weight: bold;">Your Verification Code</h1>
+                    <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px;">Hello {{email}},</p>
+                    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 24px;">You got a single time pass for {{purpose}} verification. Use the code below to complete the process:</p>
+                  </td>
+                </tr>
+                <!-- PIN Container -->
+                <tr>
+                  <td>
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom: 25px;">
+                      <tr>
+                        <td align="center">
+                          <div class="pin-container" style="background-color: #f0f8ff; border: 1px solid #d0e3ff; border-radius: 8px; padding: 20px; font-size: 36px; font-weight: bold; letter-spacing: 5px; color: rgb(230, 0, 38); font-family: monospace;">
+                            {{otp_code}}
+                          </div>
+                          <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 24px;">Click here to verify: {{verify_otp_url}}</p>
+
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px;">This code will expire in <strong>{{otp_expiry_time}}</strong> minutes.</p>
+                    <p style="margin: 0 0 15px 0; font-size: 16px; line-height: 24px;">If you didn't request this code, please ignore this email or contact our support team if you have concerns.</p>
+                    <p style="margin: 0 0 25px 0; font-size: 16px; line-height: 24px;"><strong>Important:</strong> For your security, never share this code with anyone, including our staff. We will never ask you for this code outside of our website or app.</p>
+                  </td>
+                </tr>
+                <!-- Security Notice -->
+                <tr>
+                  <td style="padding-top: 20px; border-top: 1px solid #dddddd;">
+                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                      <tr>
+                        <td style="padding: 15px; background-color: #fff8e1; border-left: 4px solid #ffc107; border-radius: 4px;">
+                          <p style="margin: 0; font-size: 14px; line-height: 20px; color: #856404;">
+                            <strong>Security Tip:</strong> Always verify that you're on our official website before entering any verification codes.
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8f8f8; padding: 20px; text-align: center; font-size: 14px; color: #666666; border-bottom: 4px solid rgb(230, 0, 38);">
+              <p style="margin: 0 0 10px 0;">This is an automated message, please do not reply.</p>
+              <p style="margin: 0 0 10px 0;">&copy; <script>document.write(new Date().getFullYear());</script>. Blackkart All rights reserved.</p>
+              <p style="margin: 0 0 10px 0;">Ohio- HQ</p>
+              <p style="margin: 0;">
+                <a href="[HELP_CENTER_LINK]" style="color: #666666; text-decoration: underline;">Help Center</a> | 
+                <a href="[PRIVACY_POLICY_LINK]" style="color: #666666; text-decoration: underline;">Privacy Policy</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

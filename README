@@ -1,0 +1,1 @@
+INBOXIT - A lightweight backend service built with Django REST Framework that lets developers easily collect form submissions from static websites or apps. Features secure API key management, JWT authentication with cookies, and detailed API docs powered by DRF Spectacular.
