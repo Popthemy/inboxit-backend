@@ -10,3 +10,8 @@ This module support:
 - User creation.
 - Profile management 
 - 
+
+include this varible in your `.env`
+OTP_EMAIL_VERIFY_EXPIRY_TIME = your-desired-time
+OTP_PASSWORD_RESET_EXPIRY_TIME = your-desired-time
+FRONTEND_URL = your-frontend url
