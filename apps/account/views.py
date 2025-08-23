@@ -27,9 +27,7 @@ from .models import Profile
 User = get_user_model()
 
 OTP_EMAIL_EXPIRY_TIME = settings.OTP_EMAIL_EXPIRY_TIME
-
 OTP_PASSWORD_EXPIRY_TIME = settings.OTP_PASSWORD_EXPIRY_TIME
-
 FRONTEND_URL = settings.FRONTEND_URL
 
 

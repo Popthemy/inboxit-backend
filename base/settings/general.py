@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,22 +40,28 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
 ]
 
+
 THIRD_PARTY_APPS = [
+   "corsheaders",
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
     "django_lifecycle_checks",
 ]
 
 LOCAL_APPS = [
-  'apps.account'
+    'apps.account'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -128,11 +135,80 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'account.CustomUser'
+# CORS_ALLOWED_ORIGINS = ('*')
+CORS_ALLOW_ALL_ORIGINS = True
 
+OTP_EMAIL_EXPIRY_TIME = os.getenv('OTP_EMAIL_VERIFY_EXPIRY_TIME')
+OTP_PASSWORD_EXPIRY_TIME = os.getenv('OTP_PASSWORD_RESET_EXPIRY_TIME')
+FRONTEND_URL = os.environ.setdefault('FRONTEND_URL', 'http://localhost:3000')
 
 
 REST_FRAMEWORK = {
-     'DEFAULT_AUTHENTICATION_CLASSES': (
-         'rest_framework_simplejwt.authentication.JWTAuthentication',
-     ),
- }
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'COERCE_DECIMAL_TO_STRING': False,
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'register': '2/m',
+        'login': '5/m',
+    }
+}
+
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('JWT',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
+}
+
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "INBOXIT API",
+    "DESCRIPTION": """
+    This is the API documentation for the **Aster Blackkart** backend.
+
+    **Servers:**
+    - Local: [http://localhost:8000](http://localhost:8000)
+    - Production: [https://blakkart-backend-new.onrender.com/](https://blakkart-backend-new.onrender.com/)
+
+    **Authentication & Authorization:**
+    - The API uses **JWT (JSON Web Tokens)** for authentication.
+    - Tokens are stored in **HttpOnly cookies** for security.
+    - For clients that don’t use cookies, you can also send tokens via headers:
+
+        ```
+        Key: Authorization
+        Value: Bearer <access_token>
+        ```
+
+    **Token Expiration:**
+    - **Access Token:** 1 day
+    - **Refresh Token:** 2 days
+    - **OTP Tokens:**
+    - Email Verification: 10 minutes
+    - Password Reset: 5 minutes
+
+    **Notes:**
+    - Protected endpoints require authentication.
+    - When using cookie-based auth, tokens are automatically attached by the browser — no need to set headers manually.
+    - For API clients or scripts, include the `Authorization` header as shown above.
+    """,
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SCHEMA_PATH_PREFIX": r"/api/v1",
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+
+}

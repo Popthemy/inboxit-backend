@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from debug_toolbar.toolbar import debug_toolbar_urls
 
 
 first_version = [
@@ -23,7 +25,12 @@ first_version = [
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('app.account')),
+    path('auth/', include('apps.account.urls')),
 
-    path('ap1/v1/',include(first_version))
-]
+    # path('ap1/v1/',include(first_version)),
+
+    # drf spectacular for documentation
+    path('api/doc/', SpectacularAPIView.as_view(), name='schema'),
+    path('redoc/', SpectacularRedocView.as_view(), name='redoc'),
+    path('', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+] + debug_toolbar_urls()
