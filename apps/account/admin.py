@@ -5,15 +5,12 @@ from .models import CustomUser, VerifyOTP,Profile
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'email', 'first_name', 'last_name', 'age', 'agree_to_privacy_policy')
+    list_display = ('id', 'email', 'first_name', 'last_name')
     search_fields = ('first_name', 'last_name', 'email',)
 
     class Meta:
         model = CustomUser
         fields = '__all__'
-
-    def age(self, instance):
-        return instance.get_age()
 
 
 @admin.register(VerifyOTP)
@@ -27,9 +24,13 @@ class VerifyOTPAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'email', 'full_name', 'gender')
-    search_fields = ('first_name','last_name',)
+    list_display = ('user', 'email', 'full_name', 'gender','age')
+    search_fields = ('first_name','last_name')
+
+    def age(self, instance):
+        return instance.get_age()
 
     class Meta:
         model = Profile
-        fields = ('user', 'first_name', 'email', 'middle_name', 'last_name', 'gender', 'bio')
+        fields = ('user', 'first_name', 'email', 'middle_name',
+                  'last_name', 'gender', 'age', 'bio')

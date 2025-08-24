@@ -60,7 +60,7 @@ class RegisterView(GenericAPIView):
                                     subject='Verify Email OTP',
                                     otp_code=otp,
                                     purpose=purpose,
-                                    url_name=f"{FRONTEND_URL}/verify_email_otp/",
+                                    url_name=f"{FRONTEND_URL}/signup/verify_email_otp/",
                                     template='account/verification_otp.html'
                                     )
                 data = {
@@ -145,7 +145,13 @@ class EmailResendOTPView(GenericAPIView):
             )
         try:
             # check user exists
-            User.objects.get(email=email)
+            user = User.objects.get(email=email)
+
+            if user.is_active:
+                return Response(
+                {"message": "User is already verified. You can login directly"},
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Generate and store new OTP
             new_otp = OTPService.generate_and_store_otp(
