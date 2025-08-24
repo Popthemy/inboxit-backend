@@ -16,8 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from debug_toolbar.toolbar import debug_toolbar_urls
+
+admin.site.site_title = 'INBOXIT'
+admin.site.site_header = 'Welcome to INBOXIT Admin site'
+admin.site.index_title = 'Site admin'
 
 
 first_version = [
@@ -32,5 +36,10 @@ urlpatterns = [
     # drf spectacular for documentation
     path('api/doc/', SpectacularAPIView.as_view(), name='schema'),
     path('redoc/', SpectacularRedocView.as_view(), name='redoc'),
-    path('', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-] + debug_toolbar_urls()
+    path('', SpectacularSwaggerView.as_view(
+        url_name='schema'), name='swagger-ui'),
+] 
+ 
+if settings.DEBUG:
+    from debug_toolbar.toolbar import debug_toolbar_urls
+    urlpatterns += debug_toolbar_urls()

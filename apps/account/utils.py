@@ -18,9 +18,11 @@ OTP_PASSWORD_EXPIRY_TIME = settings.OTP_PASSWORD_EXPIRY_TIME
 
 def get_otp_expiry_time(purpose: str):
     """Get purpose-specific expiry time"""
+    print({'email': int(settings.OTP_EMAIL_EXPIRY_TIME),
+           'password': int(settings.OTP_PASSWORD_EXPIRY_TIME), })
     return {
-        'email': settings.OTP_EMAIL_EXPIRY_TIME,
-        'password': settings.OTP_PASSWORD_EXPIRY_TIME,
+        'email': int(settings.OTP_EMAIL_EXPIRY_TIME),
+        'password':int(settings.OTP_PASSWORD_EXPIRY_TIME),
     }.get(purpose, 10)
 
 
@@ -104,6 +106,7 @@ class OTPService:
             )
             expiry_time = record.created_at + \
                 timezone.timedelta(minutes=get_otp_expiry_time(purpose))
+            print(get_otp_expiry_time(purpose))
             if timezone.now() > expiry_time:
                 record.delete()
                 return False
@@ -132,6 +135,7 @@ class EmailThread(threading.Thread):
             email.content_subtype = 'html'
             email.send(fail_silently=False)
         except Exception as e:
+            print(e)
             raise ValidationError(f"Email not sent: {e}") from e
 
 
@@ -148,8 +152,6 @@ def send_login_email(user, order, items, url):
             'order': order,
             'now':  timezone.now(),
             'order_url':  url  # f"{FRONTEND_URL}/{order.id}/",
-
-            
         }
 
         context = {

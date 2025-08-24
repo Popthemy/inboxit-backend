@@ -61,8 +61,6 @@ class CustomUser(LifecycleModelMixin, AbstractUser):
             # print(f'user has a previous  profile not a new user: {self.email}, error:{str(e)}')
             pass
 
-
-
     @property
     def get_jwt_tokens(self):
         """Get both the refresh and access token for user"""

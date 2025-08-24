@@ -61,6 +61,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -174,11 +175,11 @@ SIMPLE_JWT = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "INBOXIT API",
     "DESCRIPTION": """
-    This is the API documentation for the **Aster Blackkart** backend.
+    This is the API documentation for the **INBOXIT API** backend.
 
     **Servers:**
     - Local: [http://localhost:8000](http://localhost:8000)
-    - Production: [https://blakkart-backend-new.onrender.com/](https://blakkart-backend-new.onrender.com/)
+    - Production: [https:///](https:///)
 
     **Authentication & Authorization:**
     - The API uses **JWT (JSON Web Tokens)** for authentication.

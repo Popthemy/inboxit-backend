@@ -37,15 +37,11 @@ class UserSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     password = serializers.CharField(max_length=30, write_only=True)
     confirm_password = serializers.CharField(max_length=30, write_only=True)
-    age = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
         fields = ('id', 'email', 'first_name', 'last_name',
-                  'date_of_birth', 'age', 'password', 'confirm_password', 'agree_to_privacy_policy')
-
-    def get_age(self, instance) -> int:
-        return instance.get_age()
+                  'agree_to_privacy_policy', 'password', 'confirm_password',)
 
     def validate(self, attrs):
         password = attrs.get('password')
@@ -92,11 +88,15 @@ class LogoutSerializer(serializers.Serializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(source='user_id',read_only=True)
+    age = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ('id','email', 'first_name', 'middle_name', 'last_name',
+        fields = ('id', 'email', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'age',
                   'gender', 'bio', 'phone_number', 'created_at', 'updated_at')
+    
+    def get_age(self, instance) -> int:
+        return instance.get_age()
 
     def update(self, instance, validated_data):
         validated_data['user'] = self.context['user']
