@@ -16,18 +16,17 @@ from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import ScopedRateThrottle
-from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
 from apps.account.documentation.account.schemas import (
     register_user_doc, login_user_doc, logout_user_doc, email_verify_otp_doc, resend_email_otp_doc, password_reset_otp_doc,
     password_reset_verify, profile_doc, refresh_token_doc
 )
-from account.serializers import (
+from apps.account.serializers import (
     UserSerializer, LoginSerializer, LogoutSerializer, OTPSerializer, EmailSerializer,
     PasswordResetSerializer, ProfileSerializer
 )
-from account.utils import OTPService, send_email_with_url,set_auth_cookies, clear_auth_cookies
-from account.permissions import IsAnonymous, IsProfileOwnerOrAdmin
-from account.models import Profile
+from apps.account.utils import OTPService, send_email_with_url,set_auth_cookies, clear_auth_cookies
+from apps.account.permissions import IsAnonymous, IsProfileOwnerOrAdmin
+from apps.account.models import Profile
 
 User = get_user_model()
 
@@ -35,8 +34,14 @@ OTP_EMAIL_EXPIRY_TIME = settings.OTP_EMAIL_EXPIRY_TIME
 OTP_PASSWORD_EXPIRY_TIME = settings.OTP_PASSWORD_EXPIRY_TIME
 FRONTEND_URL = settings.FRONTEND_URL
 
+class CookieSetCsrfTokenView(GenericAPIView):
+    '''Forces a CSRF token to be set and return it '''
+    def get(self,request):
+        token = get_token(request)
+        return Response({'csrf_token':token})
 
-class RegisterView(GenericAPIView):
+
+class CookieRegisterView(GenericAPIView):
     '''
     After signup user is directed to enter the otp they receive in their mail to verify their account.
     Endpoint is only open to non-user.
@@ -81,7 +86,7 @@ class RegisterView(GenericAPIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class EmailVerifyOTPView(GenericAPIView):
+class CookieEmailVerifyOTPView(GenericAPIView):
     '''
     Verify the otp sent to the user email.
     Get user email in the url and verify if the user and the mail are valid and
@@ -116,13 +121,14 @@ class EmailVerifyOTPView(GenericAPIView):
             user.save()
 
             serializer = UserSerializer(user)
-            data = {
+            tokens = user.get_jwt_tokens
+            res = Response(data={
                 'status': 'Success',
                 'message': 'Email verified successfully!',
-                'data': serializer.data,
-                # 'token': user.get_jwt_tokens
-            }
-            return Response(data=data, status=status.HTTP_200_OK)
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+
+            return set_auth_cookies(res, tokens)
         except User.DoesNotExist:
             return Response(
                 {'message': 'User not found.'},
@@ -151,6 +157,7 @@ class EmailResendOTPView(GenericAPIView):
         try:
             # check user exists
             user = User.objects.get(email=email)
+            print(user)
 
             if user.is_active:
                 return Response(
@@ -190,7 +197,7 @@ class EmailResendOTPView(GenericAPIView):
             )
 
 
-class LoginView(GenericAPIView):
+class CookieLoginView(GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [IsAnonymous]
     throttle_classes = [ScopedRateThrottle]
@@ -206,14 +213,14 @@ class LoginView(GenericAPIView):
             user = self.login_user(serializer.validated_data)
 
             serializer = UserSerializer(user)
-
-            data = {
+            tokens = user.get_jwt_tokens
+            res = Response(data={
                 'status': 'Success',
-                'message': 'Welcome back👋',
-                'data': serializer.data,
-                'token': user.get_jwt_tokens
-            }
-            return Response(data=data, status=status.HTTP_200_OK)
+                'message': 'Login successfully!',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+
+            return set_auth_cookies(res, tokens)
         except Exception as e:
             return Response(data={
                 'status': 'Error',
@@ -238,10 +245,26 @@ class LoginView(GenericAPIView):
 
 
 @refresh_token_doc
-class TokenRefreshView(BaseTokenRefreshView):
+class CookieTokenRefreshView(GenericAPIView):
     """ Allows a user to get new access token after their token has expired."""
-    # serializer_class = LogoutSerializer
-    pass
+    serializer_class = LogoutSerializer # placeholder
+
+    def post(self, request,*args, **kwargs):
+        refresh_token = request.COOKIES.get('refresh_token')
+
+        if refresh_token is None:
+            return Response({'detail':'Refresh token not provided'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            token = RefreshToken(refresh_token)
+            tokens = {
+                'access_token':str(token.access_token),
+                'refresh_token': str(token)
+            }
+            res = Response({'message':'login refreshed'},status=status.HTTP_200_OK)
+
+            return set_auth_cookies(res,tokens)
+        except Exception as e:
+            return Response({"detail": "Invalid refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class MeView(GenericAPIView):
@@ -253,15 +276,14 @@ class MeView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            print(request.user.profile)
             serializer = self.get_serializer(request.user.profile)
             return Response({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
         except Profile.DoesNotExist:
             return Response({'status': 'profile not found!'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class LogoutView(GenericAPIView):
-    '''Log out user by a post request pass '''
+class CookieLogoutView(GenericAPIView):
+    '''Log out and to clear cookies'''
 
     serializer_class = LogoutSerializer
     permission_classes = [IsAuthenticated]
@@ -270,15 +292,15 @@ class LogoutView(GenericAPIView):
     def post(self, request, *args, **kwargs):
 
         try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-
-            refresh_token = serializer.validated_data['refresh']
+            refresh_token =request.COOKIES.get('refresh_token')
+            if refresh_token is None:
+                return Response({"detail": "Refresh token not provided"}, status=status.HTTP_401_UNAUTHORIZED)
+            
             token = RefreshToken(refresh_token)
             token.blacklist()
-
-            return Response(data={'message': 'Logout successful'},
+            res = Response(data={'message': 'Logout successful'},
                             status=status.HTTP_205_RESET_CONTENT)
+            return clear_auth_cookies(res)
         except Exception as e:
             return Response(data={'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
