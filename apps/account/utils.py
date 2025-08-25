@@ -10,6 +10,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from .models import VerifyOTP
 
+
 User = get_user_model()
 
 OTP_EMAIL_EXPIRY_TIME = settings.OTP_EMAIL_EXPIRY_TIME
@@ -22,7 +23,7 @@ def get_otp_expiry_time(purpose: str):
            'password': int(settings.OTP_PASSWORD_EXPIRY_TIME), })
     return {
         'email': int(settings.OTP_EMAIL_EXPIRY_TIME),
-        'password':int(settings.OTP_PASSWORD_EXPIRY_TIME),
+        'password': int(settings.OTP_PASSWORD_EXPIRY_TIME),
     }.get(purpose, 10)
 
 
@@ -139,11 +140,10 @@ class EmailThread(threading.Thread):
             raise ValidationError(f"Email not sent: {e}") from e
 
 
-
 def send_login_email(user, order, items, url):
     try:
 
-        subject = f"Blakkart - {action} Confirmation"
+        subject = f"INBOXIT - {action} Confirmation"
         from_email = settings.EMAIL_HOST_USER
         to_email = [user.email]
 
@@ -163,8 +163,8 @@ def send_login_email(user, order, items, url):
             'profile_url': request.build_absolute_uri(reverse('profile')),
             'deals_url': request.build_absolute_uri(reverse('deals')),
             'security_url': request.build_absolute_uri(reverse('security')),
-            'help_center_url': 'https://blakkart.com/help',
-            'privacy_policy_url': 'https://blakkart.com/privacy',
+            'help_center_url': 'https://INBOXIT.com/help',
+            'privacy_policy_url': 'https://INBOXIT.com/privacy',
             'unsubscribe_url': request.build_absolute_uri(reverse('unsubscribe')),
         }
 
@@ -176,3 +176,41 @@ def send_login_email(user, order, items, url):
         email.send(fail_silently=False)
     except Exception as e:
         raise ValidationError(f'Order Confirmation mail not sent. {e}')
+
+
+def set_auth_cookies(response, access, refresh):
+    ''' Set auth cookies in the response object and Match cookie lifetimes to token lifetimes (helps consistency)'''
+    access_max_age = int(
+        settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds())
+    refresh_max_age = int(
+        settings.SIMPLE_JWT["REFRESH_TOKEN_LIFETIME"].total_seconds())
+
+    response.set_cookie(
+        key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+        value=access,
+        httponly=True,
+        secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+        samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        max_age=access_max_age,
+    )
+
+    response.set_cookie(
+        key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
+        value=refresh,
+        httponly=True,
+        secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+        samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+        path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
+        max_age=refresh_max_age,
+    )
+    return response
+
+
+def clear_auth_cookies(response):
+    ''' Clear auth cookies by setting them to empty and expiring immediately '''
+    response.delete_cookie(
+        settings.SIMPLE_JWT["AUTH_COOKIE"], path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"])
+    response.delete_cookie(
+        settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"], path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"])
+    return response

@@ -94,7 +94,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ('id', 'email', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'age',
                   'gender', 'bio', 'phone_number', 'created_at', 'updated_at')
-    
+
     def get_age(self, instance) -> int:
         return instance.get_age()
 

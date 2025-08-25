@@ -136,8 +136,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'account.CustomUser'
-# CORS_ALLOWED_ORIGINS = ('*')
-CORS_ALLOW_ALL_ORIGINS = True
 
 OTP_EMAIL_EXPIRY_TIME = os.getenv('OTP_EMAIL_VERIFY_EXPIRY_TIME')
 OTP_PASSWORD_EXPIRY_TIME = os.getenv('OTP_PASSWORD_RESET_EXPIRY_TIME')
@@ -149,6 +147,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'COERCE_DECIMAL_TO_STRING': False,
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'apps.account.custom_auth.CookieJWTAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
@@ -164,11 +163,28 @@ REST_FRAMEWORK = {
     }
 }
 
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = ('*')
+# CSRF_TRUSTED_ORIGINS = ["https://dashboard.yourapi.com"] // same as cors
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
+
 
 SIMPLE_JWT = {
-    'AUTH_HEADER_TYPES': ('JWT',),
+    'AUTH_HEADER_TYPES': ('Bearer',),
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
+
+    # Our custom cookie names
+    "AUTH_COOKIE": "access_token",
+    "AUTH_COOKIE_REFRESH": "refresh_token",
+    "AUTH_COOKIE_SECURE": True,
+    "AUTH_COOKIE_HTTP_ONLY": True,
+    "AUTH_COOKIE_PATH": "/",
+    "AUTH_COOKIE_SAMESITE": "None",
 }
 
 

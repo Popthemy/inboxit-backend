@@ -1,8 +1,14 @@
+'''
+Here lies the view for auth using cookies that include JWT access and refresh tokens.
+The response return tokens(access and refresh) in HTTP ONLY Cookies.
+'''
+
 from django.contrib.auth import get_user_model, authenticate
 from django.http import Http404
 from django.db import transaction
 from django.conf import settings
 from django.urls import reverse
+from django.middleware.csrf import get_token
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -15,14 +21,13 @@ from apps.account.documentation.account.schemas import (
     register_user_doc, login_user_doc, logout_user_doc, email_verify_otp_doc, resend_email_otp_doc, password_reset_otp_doc,
     password_reset_verify, profile_doc, refresh_token_doc
 )
-from .serializers import (
+from account.serializers import (
     UserSerializer, LoginSerializer, LogoutSerializer, OTPSerializer, EmailSerializer,
     PasswordResetSerializer, ProfileSerializer
 )
-from .utils import OTPService, send_email_with_url
-from .permissions import IsAnonymous, IsProfileOwnerOrAdmin
-from .models import Profile
-
+from account.utils import OTPService, send_email_with_url,set_auth_cookies, clear_auth_cookies
+from account.permissions import IsAnonymous, IsProfileOwnerOrAdmin
+from account.models import Profile
 
 User = get_user_model()
 
@@ -68,7 +73,7 @@ class RegisterView(GenericAPIView):
                     'message': 'Registration successful, please check your email to verify your account. '
                     'If you didn\'t receive the OTP, you can use the resend verification link.',
                     'data': serializer.data,
-                    'resend verification link':f"{FRONTEND_URL}{reverse('email_resend_otp')}",
+                    'resend verification link': f"{FRONTEND_URL}{reverse('email_resend_otp')}",
                 }
                 return Response(data=data, status=status.HTTP_201_CREATED)
         except Exception as e:
@@ -115,7 +120,7 @@ class EmailVerifyOTPView(GenericAPIView):
                 'status': 'Success',
                 'message': 'Email verified successfully!',
                 'data': serializer.data,
-                'token': user.get_jwt_tokens
+                # 'token': user.get_jwt_tokens
             }
             return Response(data=data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
@@ -149,8 +154,8 @@ class EmailResendOTPView(GenericAPIView):
 
             if user.is_active:
                 return Response(
-                {"message": "User is already verified. You can login directly"},
-                status=status.HTTP_400_BAD_REQUEST
+                    {"message": "User is already verified. You can login directly"},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
             # Generate and store new OTP
@@ -237,6 +242,22 @@ class TokenRefreshView(BaseTokenRefreshView):
     """ Allows a user to get new access token after their token has expired."""
     # serializer_class = LogoutSerializer
     pass
+
+
+class MeView(GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def get(self, request, *args, **kwargs):
+        try:
+            print(request.user.profile)
+            serializer = self.get_serializer(request.user.profile)
+            return Response({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
+        except Profile.DoesNotExist:
+            return Response({'status': 'profile not found!'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class LogoutView(GenericAPIView):
