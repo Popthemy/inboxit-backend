@@ -25,6 +25,7 @@ admin.site.index_title = 'Site admin'
 
 
 first_version = [
+    path('', include('apps.message.urls'))
 ]
 
 urlpatterns = [

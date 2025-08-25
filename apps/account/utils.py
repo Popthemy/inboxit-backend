@@ -178,8 +178,10 @@ def send_login_email(user, order, items, url):
         raise ValidationError(f'Order Confirmation mail not sent. {e}')
 
 
-def set_auth_cookies(response, access, refresh):
+def set_auth_cookies(response, token):
     ''' Set auth cookies in the response object and Match cookie lifetimes to token lifetimes (helps consistency)'''
+    print(f" set authcook:  refr: {token.get('refresh_token')} acc:{token.get('access_token')}")
+
     access_max_age = int(
         settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds())
     refresh_max_age = int(
@@ -187,8 +189,8 @@ def set_auth_cookies(response, access, refresh):
 
     response.set_cookie(
         key=settings.SIMPLE_JWT["AUTH_COOKIE"],
-        value=access,
-        httponly=True,
+        value=token.get('access_token'),
+        httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
         secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
         samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
@@ -197,8 +199,8 @@ def set_auth_cookies(response, access, refresh):
 
     response.set_cookie(
         key=settings.SIMPLE_JWT["AUTH_COOKIE_REFRESH"],
-        value=refresh,
-        httponly=True,
+        value=token.get('refresh_token'),
+        httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
         secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
         samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         path=settings.SIMPLE_JWT["AUTH_COOKIE_PATH"],
