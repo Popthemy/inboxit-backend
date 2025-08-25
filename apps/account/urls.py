@@ -13,6 +13,7 @@ urlpatterns = [
     path('me/', view=cookie_views.MeView.as_view(), name='user_details'),
     path('logout/', view=cookie_views.CookieLogoutView.as_view(), name='logout_user'),
     path('refresh/', view=cookie_views.CookieTokenRefreshView.as_view(), name='cookies_refresh'),
+    path('csrf_token/', cookie_views.CookieSetCsrfTokenView.as_view(), name='get_csrf_token'),
 
     # forgotten password
     path('password-reset/', view=cookie_views.PasswordResetRequestOTPView.as_view(),
