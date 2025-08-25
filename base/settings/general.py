@@ -52,8 +52,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    'apps.account'
-    'apps.message'
+    'apps.account',
+    'apps.messaging',
+    'apps.key',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
