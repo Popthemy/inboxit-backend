@@ -25,14 +25,15 @@ admin.site.index_title = 'Site admin'
 
 
 first_version = [
-    path('', include('apps.message.urls'))
+    path('', include('apps.messaging.urls')),
+    path('', include('apps.key.urls')),
 ]
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('apps.account.urls')),
 
-    # path('ap1/v1/',include(first_version)),
+    path('ap1/v1/',include(first_version)),
 
     # drf spectacular for documentation
     path('api/doc/', SpectacularAPIView.as_view(), name='schema'),
