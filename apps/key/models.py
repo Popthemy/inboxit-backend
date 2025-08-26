@@ -1,4 +1,4 @@
-
+import uuid
 import secrets
 from django.db import models
 from django.conf import settings
@@ -15,7 +15,7 @@ class APIKey(models.Model):
     prefix = models.CharField(max_length=12, db_index=True)
     is_active = models.BooleanField(default=True)
     revoked_at = models.DateTimeField(null=True,blank=True)
-    default_route = models.ForeignKey(
+    route = models.ForeignKey(
         "messaging.Route", null=True, blank=True, on_delete=models.SET_NULL, related_name="keys"
     )
     last_used_at = models.DateTimeField(null=True, blank=True)
@@ -23,18 +23,19 @@ class APIKey(models.Model):
     created_at = models.DateTimeField( auto_now_add=True)
 
     class Meta:
-        ordering = ('-created_at',)
+        # constraints = (models.UniqueConstraint(fields=('default_route','is_active'),name='unique_api_key'),)
+        ordering = ('-created_at','-is_active')
 
     def __str__(self):
         return f'{self.prefix}'
 
     @staticmethod
-    def issue_for(user, default_route=None):
+    def issue_for(user, route=None):
         raw = secrets.token_urlsafe(32)
         key_hash = hash_key(raw)
         prefix = raw[:8]
         obj = APIKey.objects.create(
-            user=user, key_hash=key_hash, prefix=prefix, default_route=default_route
+            user=user, key_hash=key_hash, prefix=prefix, route=route
         )
         return obj, raw
 

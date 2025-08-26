@@ -1,5 +1,6 @@
 from .general import *
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -26,7 +27,10 @@ DATABASES = {
 
 
 # email
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = f'{MEDIA_ROOT}/emails'
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_SSL = False
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
