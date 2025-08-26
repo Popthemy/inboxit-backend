@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import APIKey
+from .models import APIKey,UserUsage
 from apps.messaging.models import Route
 
 
@@ -36,3 +36,18 @@ class CreateApiKeySerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('These route still has a valid api key. Use the old Api Key or revoke the old api')
         user = validated_data['user']
         return APIKey.issue_for(user=user, route=route)
+
+
+class UserUsageSerializer(serializers.ModelSerializer):
+
+    user_details = serializers.SerializerMethodField()
+    class Meta:
+        model = UserUsage
+        fields = ('user_details' ,'total_requests', 'requests_today')
+
+    def get_user_details(self,obj):
+        return{
+            'id':obj.user.id,
+            'email':obj.user.email
+
+        }
