@@ -14,4 +14,4 @@ class APIKeyAdmin(admin.ModelAdmin):
 
 @admin.register(UserUsage)
 class UserUsageAdmin(admin.ModelAdmin):
-    list_display = ('total_requests', 'requests_today')
+    list_display = ('user','total_requests', 'requests_today')
