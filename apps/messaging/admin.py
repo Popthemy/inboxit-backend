@@ -8,7 +8,6 @@ class RouteAdmin(admin.ModelAdmin):
     list_display = ('channel', 'user')
 
 
-
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('subject','status', 'sent_at')

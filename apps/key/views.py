@@ -74,7 +74,7 @@ class RevokeApiKeyView(GenericAPIView):
                 'message': 'API key not found'
             }, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'message': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, *args, **kwargs):
         try:
@@ -93,7 +93,7 @@ class RevokeApiKeyView(GenericAPIView):
             return Response({'status': 'error', 'message': 'API key not found'
                              }, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'message': e}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserUsageViewSet(ReadOnlyModelViewSet):
@@ -101,6 +101,5 @@ class UserUsageViewSet(ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user , _ =UserUsage.objects.get_or_create(user=self.request.user)
-        print(user)
+        user , _ = UserUsage.objects.get_or_create(user=self.request.user)
         return [user]

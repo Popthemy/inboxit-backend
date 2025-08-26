@@ -10,7 +10,6 @@ class Route(models.Model):
     '''
     1 route per apikey or different route for different unique api_key
     '''
-    
     CHANNEL_EMAIL = "email"
     CHANNEL_CHOICES = [(CHANNEL_EMAIL, "Email")]
 
@@ -18,12 +17,11 @@ class Route(models.Model):
         User, on_delete=models.CASCADE, related_name="routes")
     channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)
     is_active = models.BooleanField(default=True)
-    recipient_email = models.EmailField(help_text='this email receives the email ')
+    recipient_email = models.EmailField(help_text='this email receives the message ')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ('-created_at',)
-
 
     def __str__(self):
         return f'{self.channel} - {self.recipient_email}'
@@ -51,7 +49,6 @@ class Message(models.Model):
         max_length=20, default="queued", choices=Status.choices
     )
     error = models.TextField(blank=True)
-    preview_link = models.URLField(blank=True, null=True)
     attachments = models.FileField(
         upload_to="messages/attachments/", blank=True, null=True)
 
@@ -62,3 +59,6 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.status.upper()} → {self.recipient_email} from {self.visitor_email}"
+
+    def get_absolute_url(self):
+        return reverse("messages-detail", kwargs={"pk": self.pk})
