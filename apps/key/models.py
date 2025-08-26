@@ -52,7 +52,6 @@ class UserUsage(models.Model):
     '''
 
     user = models.OneToOneField(User,on_delete=models.CASCADE, related_name='usage')
-    
     total_requests = models.PositiveIntegerField(default=0)
     requests_today = models.PositiveIntegerField(default=0)
 
