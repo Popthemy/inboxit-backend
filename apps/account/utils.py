@@ -19,8 +19,6 @@ OTP_PASSWORD_EXPIRY_TIME = settings.OTP_PASSWORD_EXPIRY_TIME
 
 def get_otp_expiry_time(purpose: str):
     """Get purpose-specific expiry time"""
-    print({'email': int(settings.OTP_EMAIL_EXPIRY_TIME),
-           'password': int(settings.OTP_PASSWORD_EXPIRY_TIME), })
     return {
         'email': int(settings.OTP_EMAIL_EXPIRY_TIME),
         'password': int(settings.OTP_PASSWORD_EXPIRY_TIME),

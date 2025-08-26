@@ -159,11 +159,11 @@ class EmailResendOTPView(GenericAPIView):
             user = User.objects.get(email=email)
             print(user)
 
-            if user.is_active:
-                return Response(
-                    {"message": "User is already verified. You can login directly"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            # if user.is_active:
+            #     return Response(
+            #         {"message": "User is already verified. You can login directly"},
+            #         status=status.HTTP_400_BAD_REQUEST
+            #     )
 
             # Generate and store new OTP
             new_otp = OTPService.generate_and_store_otp(
