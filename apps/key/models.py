@@ -54,6 +54,7 @@ class UserUsage(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE, related_name='usage')
     total_requests = models.PositiveIntegerField(default=0)
     requests_today = models.PositiveIntegerField(default=0)
+    last_request_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ('-requests_today', '-total_requests')
