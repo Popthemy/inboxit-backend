@@ -163,6 +163,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'register': '2/m',
         'login': '5/m',
+        'send_email_with_apikey': '10/m',
     }
 }
 

@@ -62,3 +62,23 @@ class Message(models.Model):
 
     def get_absolute_url(self):
         return reverse("messages-detail", kwargs={"pk": self.pk})
+
+
+class UserUsage(models.Model):
+    '''
+    Tracks per-user usage irregardless of api-key activeness
+    at the end of the day use a cron job to set the total request= total+Today, 
+    group when setting 
+    '''
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='usage')
+    total_requests = models.PositiveIntegerField(default=0)
+    requests_today = models.PositiveIntegerField(default=0)
+    last_request_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ('-requests_today', '-total_requests')
+
+    def __str__(self):
+        return f'Overall Req:{self.total_requests} - Today Req: {self.requests_today} '

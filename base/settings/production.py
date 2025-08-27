@@ -7,12 +7,22 @@ DEBUG = os.getenv('DEBUG')
 
 ALLOWED_HOSTS = []
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv("NAME"),
+        'USER': os.getenv("USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("HOST"),
+        'PORT':  os.getenv("PORT", "3306"),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'"
+        },
+
     }
 }
+
 
 # email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
