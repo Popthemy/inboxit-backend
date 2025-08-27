@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import APIKey, UserUsage
+from .models import APIKey
 
 
 # Register your models here.
@@ -11,7 +11,3 @@ class APIKeyAdmin(admin.ModelAdmin):
     list_filter = ('is_active', )
     search_fields = ('default_route',)
 
-
-@admin.register(UserUsage)
-class UserUsageAdmin(admin.ModelAdmin):
-    list_display = ('user','total_requests', 'requests_today')

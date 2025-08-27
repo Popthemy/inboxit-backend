@@ -2,11 +2,10 @@ from django.shortcuts import get_object_or_404
 from django.http import Http404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import GenericAPIView
-from rest_framework.viewsets import ReadOnlyModelViewSet
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ApiKeySerializer, CreateApiKeySerializer, UserUsageSerializer
-from .models import APIKey, UserUsage
+from .serializers import ApiKeySerializer, CreateApiKeySerializer
+from .models import APIKey
 
 # Create your views here.
 
@@ -54,7 +53,6 @@ class RevokeApiKeyView(GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-
         return get_object_or_404(APIKey, id=self.kwargs.get('pk'), user=self.request.user)
 
     def get(self, *args, **kwargs):
@@ -79,7 +77,9 @@ class RevokeApiKeyView(GenericAPIView):
     def post(self, *args, **kwargs):
         try:
             key = self.get_object()
-            print(f'{key} revoked')
+            if not key.revoke:
+                return Response({'message':'key already revoked!'}, status=status.HTTP_200_OK)
+
             key.revoke()
             serializer = self.get_serializer(self.get_object())
             data = {
@@ -96,10 +96,3 @@ class RevokeApiKeyView(GenericAPIView):
             return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserUsageViewSet(ReadOnlyModelViewSet):
-    serializer_class = UserUsageSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user , _ = UserUsage.objects.get_or_create(user=self.request.user)
-        return [user]

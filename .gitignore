@@ -10,6 +10,6 @@ data
 logs/
 **/__pycache__/
 
-guide.md
+docs/
 pipfile
 pipfile.lock
