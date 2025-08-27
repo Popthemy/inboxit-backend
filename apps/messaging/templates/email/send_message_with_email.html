@@ -18,7 +18,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <h2> INBOXIT -{{ subject }}</h2>
+      <h2> {{ subject }}</h2>
     </div>
     <div class="content">
       {% if image_url %}
@@ -26,12 +26,14 @@
           <img src="{{ image_url }}" alt="Message Image">
         </div>
       {% endif %}
-      <p>{{ body|linebreaks }}</p>
+      <div style="margin: 20px 0;">
+        {{ body_html|safe }}
+      </div>
       <a href="{{ preview_link }}" class="btn">View Message on Our Platform</a>
     </div>
     <div class="footer">
       <p>Sent securely via <strong>INBOXIT</strong> at {{time}}.</p>
-      <p>Want more reach? Connect SMS, WhatsApp, Slack → <a href="{{dashboard_link}}">Upgrade now</a></p>
+      <p>Want more reach? Connect SMS, WhatsApp, Slack → <a href="{{dashboard_link}}">Coming soon...</a></p>
     </div>
   </div>
 </body>
