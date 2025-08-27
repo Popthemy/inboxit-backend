@@ -1,9 +1,8 @@
 
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from django.utils import timezone
 from .utils import hash_key
-from .models import APIKey, UserUsage
+from .models import APIKey
 
 
 class ApiKeyAuthentication(BaseAuthentication):
@@ -24,16 +23,7 @@ class ApiKeyAuthentication(BaseAuthentication):
         try:
             obj = APIKey.objects.select_related("user").get(
                 key_hash=key_hash, is_active=True)
+            return (obj.user, obj)
+
         except APIKey.DoesNotExist:
             raise AuthenticationFailed("Invalid or revoked API key")
-
-        usage, _ = UserUsage.objects.get_or_create(user=obj.user)
-        usage.total_requests += 1
-        usage.requests_today += 1
-        usage.save(update_fields=['total_requests', 'requests_today'])
-
-        obj.usage_count = (obj.usage_count or 0) + 1
-        obj.last_used_at = timezone.now()
-        obj.save(update_fields=["usage_count", "last_used_at"])
-
-        return (obj.user, obj)
