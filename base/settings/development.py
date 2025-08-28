@@ -1,6 +1,6 @@
 from .general import *
 from dotenv import load_dotenv
-
+from django.conf import settings
 load_dotenv()
 
 
@@ -10,13 +10,14 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # debug toolbar
-MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+if DEBUG:
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
 
-INSTALLED_APPS += ['debug_toolbar']
+    INSTALLED_APPS += ['debug_toolbar']
 
-INTERNAL_IPS = [
-    "127.0.0.1"
-]
+    INTERNAL_IPS = [
+        "127.0.0.1"
+    ]
 
 DATABASES = {
     'default': {
