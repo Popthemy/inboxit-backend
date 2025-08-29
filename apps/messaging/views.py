@@ -56,7 +56,7 @@ class MessageViewSet(ModelViewSet):
 
 class SendEmailWithApiKeyView(GenericAPIView):
     """
-    TV3kdckXdRRbl3mty5Qn-K9C9j3u8uLVSQB9-OhbRss
+    8h97nIIS9JvC2Ez8zF7EWy91Ja240jCdCcXnjTzz2C4
 
      Required:
     - visitor_email (from request.data)

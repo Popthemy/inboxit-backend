@@ -14,7 +14,6 @@ DATABASES = {
 }
 
 
-
 # email
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = f'{MEDIA_ROOT}/emails'

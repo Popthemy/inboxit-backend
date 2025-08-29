@@ -75,7 +75,6 @@ def increment_user_usage( apikey_obj):
 
     now = timezone.now()
 
-
     usage, _ = UserUsage.objects.select_for_update().get_or_create(user=apikey_obj.user)
     
     if usage.last_request_at is None or usage.last_request_at.date() != now.date():
