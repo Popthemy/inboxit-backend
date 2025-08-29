@@ -212,12 +212,12 @@ SPECTACULAR_SETTINGS = {
 
     **Servers:**
     - Local: [http://localhost:8000](http://localhost:8000)
-    - Production: [https:///](https:///)
+    - Production: [https://pimadev.pythonanywhere.com/](https://pimadev.pythonanywhere.com/)
 
     **Authentication & Authorization:**
     - The API uses **JWT (JSON Web Tokens)** for authentication.
     - Tokens are stored in **HttpOnly cookies** for security.
-    - For clients that don’t use cookies, you can also send tokens via headers:
+    - For clients that don't use cookies, you can also send tokens via headers:
 
         ```
         Key: Authorization
