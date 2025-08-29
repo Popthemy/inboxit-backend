@@ -3,8 +3,6 @@ load_dotenv()
 
 from .general import *
 
-DEBUG = os.getenv('DEBUG')
-
 ALLOWED_HOSTS = []
 
 

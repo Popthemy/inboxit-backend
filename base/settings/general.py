@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-
+DEBUG = os.getenv('DEBUG', 'False')
 
 # Application definition
 
@@ -145,6 +145,25 @@ OTP_PASSWORD_EXPIRY_TIME = os.getenv('OTP_PASSWORD_RESET_EXPIRY_TIME')
 FRONTEND_URL = os.environ.setdefault('FRONTEND_URL', 'http://localhost:3000')
 
 
+# debug toolbar
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+
+    INTERNAL_IPS = [
+        "127.0.0.1"
+    ]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+
+
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
@@ -233,3 +252,5 @@ SPECTACULAR_SETTINGS = {
     'REDOC_DIST': 'SIDECAR',
 
 }
+
+
