@@ -29,7 +29,7 @@ first_version = [
 ]
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('all-admin/', admin.site.urls),
     path('auth/', include('apps.account.urls')),
 
     path('api/v1/',include(first_version)),
