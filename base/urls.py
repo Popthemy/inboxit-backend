@@ -23,7 +23,6 @@ admin.site.site_title = 'INBOXIT'
 admin.site.site_header = 'Welcome to INBOXIT Admin site'
 admin.site.index_title = 'Site admin'
 
-
 first_version = [
     path('', include('apps.key.urls')),
     path('', include('apps.messaging.urls')),
