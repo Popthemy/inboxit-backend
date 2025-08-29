@@ -48,7 +48,7 @@ def send_message_email(message):
         }
 
         html_content = render_to_string(
-            'email/send_message_with_email.html', context)
+            'email/email-template.html', context)
 
         email = EmailMultiAlternatives(
             subject, text_content, from_email, to_email, reply_to=[visitor_email])
