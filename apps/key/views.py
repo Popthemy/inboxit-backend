@@ -4,22 +4,30 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ApiKeySerializer, CreateApiKeySerializer
+from rest_framework.filters import OrderingFilter,SearchFilter
+from apps.key.documentation.schemas import list_apikey_docs, details_apikey_docs
+from .serializers import ApiKeySerializer, ListApiKeySerializer
 from .models import APIKey
 
-# Create your views here.
 
-
+@list_apikey_docs
 class ApiKeyView(GenericAPIView):
-    serializer_class = CreateApiKeySerializer
+    """
+    f53qVR9rSSWibTd9Z1NL162wniyJsNhOled4jUxYbX8
+    """
+
+    serializer_class = ListApiKeySerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['prefix']
+    ordering_fields = ['is_active', 'created_at']
 
     def get_queryset(self):
         return APIKey.objects.filter(user=self.request.user)
 
     def get(self, request):
-        keys = self.get_queryset()
-        serializer = ApiKeySerializer(keys, many=True)
+        keys = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(keys, many=True)
 
         data = {
             'status': 'success',
@@ -37,18 +45,20 @@ class ApiKeyView(GenericAPIView):
             data = {
                 'status': 'success',
                 'message': 'new api keys created successfully',
-                'api_key': raw_api_key,
+                'raw_apikey': raw_api_key,
                 'data': serializer.data,
             }
             return Response(data=data, status=status.HTTP_201_CREATED)
         return Response({'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@details_apikey_docs
 class RevokeApiKeyView(GenericAPIView):
     '''
     This endpoint is the details view and can also be used to revoke an api. 
     When you revoke and api you can't receive message using the api
     '''
+
     serializer_class = ApiKeySerializer
     permission_classes = [IsAuthenticated]
 
@@ -75,6 +85,7 @@ class RevokeApiKeyView(GenericAPIView):
             return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, *args, **kwargs):
+        '''revoke = delete '''
         try:
             key = self.get_object()
             if not key.revoke:
@@ -94,5 +105,3 @@ class RevokeApiKeyView(GenericAPIView):
                              }, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-

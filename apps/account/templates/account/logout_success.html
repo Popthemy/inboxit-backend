@@ -477,7 +477,7 @@
                         <div class="detail-row">
                           <span class="detail-label">🕒 Logout Time:</span>
                           <span class="detail-value"
-                            >{{logout_time|date:"M d, Y g:i A"}}</span
+                            >{{time|date:"M d, Y g:i A"}} ago</span
                           >
                         </div>
                         <div class="detail-row">
@@ -487,37 +487,10 @@
                           >
                         </div>
                         <div class="detail-row">
-                          <span class="detail-label">🌍 Location:</span>
+                          <span class="detail-label">🌍 IP ADDRESS:</span>
                           <span class="detail-value"
-                            >{{user_location|default:"Unknown"}}</span
+                            >{{ip_address|default:"Unknown"}}</span
                           >
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-
-                  <!-- Quick Actions -->
-                  <tr>
-                    <td>
-                      <div class="quick-actions">
-                        <h3 class="actions-title">Quick Actions</h3>
-                        <div class="actions-grid">
-                          <a href="{{login_url}}" class="action-item">
-                            <span class="action-icon">🔐</span>
-                            <p class="action-text">Login Again</p>
-                          </a>
-                          <a href="{{shop_url}}" class="action-item">
-                            <span class="action-icon">🛍️</span>
-                            <p class="action-text">Browse Products</p>
-                          </a>
-                          <a href="{{deals_url}}" class="action-item">
-                            <span class="action-icon">🔥</span>
-                            <p class="action-text">View Deals</p>
-                          </a>
-                          <a href="{{support_url}}" class="action-item">
-                            <span class="action-icon">💬</span>
-                            <p class="action-text">Get Support</p>
-                          </a>
                         </div>
                       </div>
                     </td>
@@ -560,17 +533,14 @@
                   This is an automated message, please do not reply.
                 </p>
                 <p class="footer-text">
-                  &copy; 2024 INBOXIT. All rights reserved.
+                  &copy; 
+                  <script>
+                    document.write(new Date().getFullYear());
+                  </script> INBOXIT. All rights reserved.
                 </p>
-                <p class="footer-text">Ohio - HQ</p>
+                <p class="footer-text">Lagos, Nigeria</p>
                 <div class="footer-links">
-                  <a href="{{help_center_url}}" class="footer-link"
-                    >Help Center</a
-                  >
-                  <a href="{{privacy_policy_url}}" class="footer-link"
-                    >Privacy Policy</a
-                  >
-                  <a href="{{security_url}}" class="footer-link">Security</a>
+                  <a href="#" class="footer-link">Help Center</a>
                 </div>
               </td>
             </tr>

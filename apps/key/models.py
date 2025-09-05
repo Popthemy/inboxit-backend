@@ -19,7 +19,6 @@ class APIKey(models.Model):
     created_at = models.DateTimeField( auto_now_add=True)
 
     class Meta:
-        # constraints = (models.UniqueConstraint(fields=('default_route','is_active'),name='unique_api_key'),)
         ordering = ('-created_at','-is_active')
 
     def __str__(self):
