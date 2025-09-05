@@ -386,25 +386,17 @@
                       </div>
                       <div class="detail-row">
                         <span class="detail-label">🕒 Login Time:</span>
-                        <span class="detail-value">{{login_time|date:"M d, Y g:i A"}}</span>
+                        <span class="detail-value">{{time|date:"M d, Y g:i A"}}</span>
                       </div>
                       <div class="detail-row">
-                        <span class="detail-label">🌍 Location:</span>
-                        <span class="detail-value">{{user_location|default:"Unknown"}}</span>
+                        <span class="detail-label">🌍 IP ADDRESS:</span>
+                        <span class="detail-value">{{session_duration|default:"Unknown"}}</span>
                       </div>
                       <div class="detail-row">
                         <span class="detail-label">📱 Device:</span>
                         <span class="detail-value">{{user_device|default:"Web Browser"}}</span>
                       </div>
                     </div>
-                  </td>
-                </tr>
-                
-                <!-- Action Buttons -->
-                <tr>
-                  <td class="action-buttons">
-                    <a href="{{shop_url}}" class="btn btn-primary">Start Shopping</a>
-                    <a href="{{profile_url}}" class="btn btn-secondary">View Profile</a>
                   </td>
                 </tr>
                 
@@ -430,12 +422,14 @@
           <tr>
             <td class="email-footer">
               <p class="footer-text">This is an automated message, please do not reply.</p>
-              <p class="footer-text">&copy;  INBOXIT. All rights reserved.</p>
-              <p class="footer-text">Ohio - HQ</p>
+              <p class="footer-text">&copy; 
+                  <script>
+                    document.write(new Date().getFullYear());
+                  </script> INBOXIT. All rights reserved.</p>
+              <p class="footer-text">Lagos, Nigeria</p>
               <div class="footer-links">
-                <a href="{{help_center_url}}" class="footer-link">Help Center</a>
-                <a href="{{privacy_policy_url}}" class="footer-link">Privacy Policy</a>
-                <a href="{{security_url}}" class="footer-link">Security</a>
+                <a href="#" class="footer-link">Help Center</a>
+                <a href="#" class="footer-link">Privacy Policy</a>
               </div>
             </td>
           </tr>

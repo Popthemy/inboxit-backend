@@ -2,6 +2,7 @@
 import threading
 import hashlib
 import random
+from datetime import datetime, timedelta
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -138,47 +139,60 @@ class EmailThread(threading.Thread):
             raise ValidationError(f"Email not sent: {e}") from e
 
 
-def send_login_email(user, order, items, url):
-    try:
+def get_client_ip(request):
+    """Get the client's IP address"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
+
+def get_hours_since_last_login(last_login, current_time):
+    """
+    Returns the number of hours since the user's last login.
+    """
+    if not last_login:
+        return ''
+    last_login = current_time - last_login
+    hours = last_login.total_seconds() // 3600
+    return f"{int(hours)} hours" if hours > 1 else f"{int(hours)} hour"
+
+
+def send_login_or_logout_email(user, request, action:str):
+    try:
         subject = f"INBOXIT - {action} Confirmation"
         from_email = settings.EMAIL_HOST_USER
         to_email = [user.email]
+        now = timezone.now()
+
+        last_login = ''
+        if action == 'logout':
+            last_login = get_hours_since_last_login(user.last_login, now)
 
         context = {
             'user': user,
-            'order': order,
-            'now':  timezone.now(),
-            'order_url':  url  # f"{FRONTEND_URL}/{order.id}/",
-        }
-
-        context = {
-            'user': user,
-            'login_time': timezone.now(),
+            'time': now,
             'ip_address': get_client_ip(request),
             'user_agent': request.META.get('HTTP_USER_AGENT', 'Unknown'),
-            'shop_url': request.build_absolute_uri(reverse('shop')),
-            'profile_url': request.build_absolute_uri(reverse('profile')),
-            'deals_url': request.build_absolute_uri(reverse('deals')),
-            'security_url': request.build_absolute_uri(reverse('security')),
-            'help_center_url': 'https://INBOXIT.com/help',
-            'privacy_policy_url': 'https://INBOXIT.com/privacy',
-            'unsubscribe_url': request.build_absolute_uri(reverse('unsubscribe')),
+            'session_duration': last_login,
         }
 
         html_content = render_to_string(
-            'emails/order_confirmation.html', context)
+            f'account/{action}_success.html', context)
 
         email = EmailMultiAlternatives(subject, '', from_email, to_email)
         email.attach_alternative(html_content, "text/html")
         email.send(fail_silently=False)
     except Exception as e:
-        raise ValidationError(f'Order Confirmation mail not sent. {e}')
+        print(e)
+        raise ValidationError(f'{action} mail for {user.email} not sent {e}')
 
 
 def set_auth_cookies(response, token):
     ''' Set auth cookies in the response object and Match cookie lifetimes to token lifetimes (helps consistency)'''
-    print(f" set authcook:  refr: {token.get('refresh_token')} acc:{token.get('access_token')}")
+    # print(f" set authcook:  refr: {token.get('refresh_token')} acc:{token.get('access_token')}")
 
     access_max_age = int(
         settings.SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"].total_seconds())

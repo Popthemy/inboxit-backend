@@ -24,9 +24,10 @@ from apps.account.serializers import (
     UserSerializer, LoginSerializer, LogoutSerializer, OTPSerializer, EmailSerializer,
     PasswordResetSerializer, ProfileSerializer
 )
-from apps.account.utils import OTPService, send_email_with_url,set_auth_cookies, clear_auth_cookies
+from apps.account.utils import OTPService, send_email_with_url, set_auth_cookies, clear_auth_cookies, send_login_or_logout_email
 from apps.account.permissions import IsAnonymous, IsProfileOwnerOrAdmin
 from apps.account.models import Profile
+
 
 User = get_user_model()
 
@@ -159,11 +160,11 @@ class EmailResendOTPView(GenericAPIView):
             user = User.objects.get(email=email)
             print(user)
 
-            # if user.is_active:
-            #     return Response(
-            #         {"message": "User is already verified. You can login directly"},
-            #         status=status.HTTP_400_BAD_REQUEST
-            #     )
+            if user.is_active:
+                return Response(
+                    {"message": "User is already verified. You can login directly"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Generate and store new OTP
             new_otp = OTPService.generate_and_store_otp(
@@ -214,6 +215,10 @@ class CookieLoginView(GenericAPIView):
 
             serializer = UserSerializer(user)
             tokens = user.get_jwt_tokens
+
+            # send login success email
+            send_login_or_logout_email(user, request,'login')
+
             res = Response(data={
                 'status': 'Success',
                 'message': 'Login successfully!',
@@ -298,6 +303,10 @@ class CookieLogoutView(GenericAPIView):
             
             token = RefreshToken(refresh_token)
             token.blacklist()
+
+            # send logout success email
+            send_login_or_logout_email(request.user, request, 'logout')
+
             res = Response(data={'message': 'Logout successful'},
                             status=status.HTTP_205_RESET_CONTENT)
             return clear_auth_cookies(res)
