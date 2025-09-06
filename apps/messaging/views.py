@@ -2,33 +2,46 @@ from django.db import transaction
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter,OrderingFilter
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import ScopedRateThrottle
 from apps.messaging.platforms.email.services import send_message_email, increment_user_usage
 from apps.key.authentication import ApiKeyAuthentication
+from apps.messaging.documentation.schemas import user_usage_doc, route_docs, message_docs, send_email_with_apikey_doc
 from .models import Route, Message, UserUsage
-from .serializers import RouteSerializer, MessageSerializer, UserUsageSerializer
-
-# Create your views here.
+from .serializers import RouteSerializer, ListMessageSerializer, MessageSerializer, UserUsageSerializer
 
 
-class UserUsageViewSet(ReadOnlyModelViewSet):
+@user_usage_doc
+class UserUsageView(GenericAPIView):
     serializer_class = UserUsageSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user, _ = UserUsage.objects.get_or_create(user=self.request.user)
-        return [user]
+        return user
+
+    def get(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(self.get_queryset())
+        return Response(
+            {'status': 'success', 'message': 'user usage stat retrieved successfully',
+                'data': serializer.data},
+            status=status.HTTP_200_OK)
 
 
+@route_docs
 class RouteViewSet(ModelViewSet):
     """
     Manage delivery routes (e.g., email recipient settings).
     """
+    http_method_names= ['get', 'post', 'patch', 'delete']
     serializer_class = RouteSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter, OrderingFilter]
+    ordering_fields = ['is_active']
+    search_fields = ['recipient_email']
 
     def get_queryset(self):
         return Route.objects.filter(user=self.request.user)
@@ -36,10 +49,10 @@ class RouteViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
-
-class MessageViewSet(ModelViewSet):
+@message_docs
+class MessageViewSet(ReadOnlyModelViewSet):
     """
-    Handle messages: list, create, preview.
+    Handle messages: list, preview of message sent.
     """
     http_method_names = ['get']
     serializer_class = MessageSerializer
@@ -48,17 +61,22 @@ class MessageViewSet(ModelViewSet):
     search_fields = ['apikey__key_hash', 'recipient_email', 'status']
 
     def get_queryset(self):
+        if self.request.user.is_staff:
+            return Message.objects.all()
         return Message.objects.filter(apikey__user=self.request.user)
 
-    def perform_create(self, serializer):
-        serializer.save()
+    def get_serializer_class(self):
+        if self.action in ['list']:
+            return ListMessageSerializer
+        return super().get_serializer_class()
 
 
+@send_email_with_apikey_doc
 class SendEmailWithApiKeyView(GenericAPIView):
     """
     8h97nIIS9JvC2Ez8zF7EWy91Ja240jCdCcXnjTzz2C4
 
-     Required:
+    Required:
     - visitor_email (from request.data)
     - subject
     - body (can be plain text)
@@ -73,7 +91,6 @@ class SendEmailWithApiKeyView(GenericAPIView):
     The recipient_email is derived from the route tied to the API key.
 
     """
-
     authentication_classes = [ApiKeyAuthentication]
     permission_classes = [IsAuthenticated]
     throttle_classes = [ScopedRateThrottle]

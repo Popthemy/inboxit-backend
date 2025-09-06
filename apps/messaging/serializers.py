@@ -11,11 +11,12 @@ class UserUsageSerializer(serializers.ModelSerializer):
         model = UserUsage
         fields = ('user_details', 'total_requests', 'requests_today')
 
-    def get_user_details(self, obj):
+    def get_user_details(self, obj) -> dict:
         return {
             'id': obj.user.id,
             'email': obj.user.email
         }
+
 
 class RouteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,6 +30,15 @@ class RouteSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context["request"].user
         return Route.objects.create(user=user, **validated_data)
+
+
+class ListMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = (
+            "id", "visitor_email", "recipient_email", "subject", "sent_at", "status"
+        )
+        read_only_fields = fields
 
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -58,9 +68,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
         if website:
             raise serializers.ValidationError("Spam detected.")
-        attrs.pop("website", None)
         return super().validate(attrs)
-    
 
     def create(self, validated_data):
         return Message.objects.create(**validated_data)
