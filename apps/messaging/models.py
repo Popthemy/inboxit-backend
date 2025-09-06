@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.urls import reverse
+from django.core.validators import FileExtensionValidator
+from .validators import validate_file_size
 # Create your models here.
 
 User = settings.AUTH_USER_MODEL
@@ -21,7 +23,7 @@ class Route(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('-created_at',)
+        ordering = ('-created_at', '-is_active')
 
     def __str__(self):
         return f'{self.channel} - {self.recipient_email}'
@@ -33,7 +35,6 @@ class Message(models.Model):
         QUEUED = "queued", "Queued"
         SENT = "sent", "Sent"
         FAILED = "failed", "Failed"
-
 
     apikey = models.ForeignKey(
         "key.APIKey", on_delete=models.CASCADE, related_name="messages"
@@ -50,12 +51,13 @@ class Message(models.Model):
     )
     error = models.TextField(blank=True)
     attachments = models.FileField(
-        upload_to="messages/attachments/", blank=True, null=True)
+        upload_to="messages/attachments/", blank=True, null=True ,
+        validators=[validate_file_size, FileExtensionValidator(allowed_extensions=('pdf,doc'))])
 
     image_url = models.URLField(blank=True, null=True)
 
     class Meta:
-        ordering = ("-accepted_at",)
+        ordering = ("-accepted_at", '-sent_at')
 
     def __str__(self):
         return f"{self.status.upper()} → {self.recipient_email} from {self.visitor_email}"
