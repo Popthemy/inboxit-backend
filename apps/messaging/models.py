@@ -19,7 +19,8 @@ class Route(models.Model):
         User, on_delete=models.CASCADE, related_name="routes")
     channel = models.CharField(max_length=20, choices=CHANNEL_CHOICES)
     is_active = models.BooleanField(default=True)
-    recipient_email = models.EmailField(help_text='this email receives the message ')
+    recipient_email = models.EmailField(
+        help_text='this email receives the message')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -51,7 +52,7 @@ class Message(models.Model):
     )
     error = models.TextField(blank=True)
     attachments = models.FileField(
-        upload_to="messages/attachments/", blank=True, null=True ,
+        upload_to="messages/attachments/", blank=True, null=True,
         validators=[validate_file_size, FileExtensionValidator(allowed_extensions=('pdf,doc'))])
 
     image_url = models.URLField(blank=True, null=True)

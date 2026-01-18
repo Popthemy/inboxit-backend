@@ -37,6 +37,13 @@ FRONTEND_URL = settings.FRONTEND_URL
 
 class CookieSetCsrfTokenView(GenericAPIView):
     '''Forces a CSRF token to be set and return it '''
+
+    def get_serializer(self, *args, **kwargs):
+        pass
+
+    def get_queryset(self):
+        pass
+
     def get(self,request):
         token = get_token(request)
         return Response({'csrf_token':token})
