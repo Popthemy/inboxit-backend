@@ -23,7 +23,7 @@ class RouteSerializer(serializers.ModelSerializer):
         model = Route
         fields = (
             "id", "user", "channel", "is_active",
-            "recipient_email", "created_at"
+            "recipient_emails", "created_at"
         )
         read_only_fields = ("id", "created_at", "user")
 
@@ -36,7 +36,7 @@ class ListMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = (
-            "id", "visitor_email", "recipient_email", "subject", "sent_at", "status"
+            "id", "visitor_email", "recipient_emails", "subject", "sent_at", "status"
         )
         read_only_fields = fields
 
@@ -47,12 +47,12 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = (
-            "id", "apikey", "visitor_email","recipient_email", "subject",
+            "id", "apikey", "visitor_email", "recipient_emails", "subject",
             "body", "accepted_at", "sent_at", "status",
             "error", "attachments", "image_url", "website"
         )
         read_only_fields = [
-            "id", "apikey", "recipient_email", "accepted_at", "sent_at", "status", "error"
+            "id", "apikey", "recipient_emails", "accepted_at", "sent_at", "status", "error"
         ]
 
     def to_internal_value(self, data):
@@ -60,7 +60,7 @@ class MessageSerializer(serializers.ModelSerializer):
         body = data.get('body')
 
         if isinstance(body, str):
-            data['body'] = {'text':body}
+            data['body'] = {'text': body}
         return super().to_internal_value(data)
 
     def validate(self, attrs):

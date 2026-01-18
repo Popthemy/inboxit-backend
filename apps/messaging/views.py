@@ -2,7 +2,7 @@ from django.db import transaction
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework.filters import SearchFilter,OrderingFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import ScopedRateThrottle
@@ -36,18 +36,19 @@ class RouteViewSet(ModelViewSet):
     """
     Manage delivery routes (e.g., email recipient settings).
     """
-    http_method_names= ['get', 'post', 'patch', 'delete']
+    http_method_names = ['get', 'post', 'patch', 'delete']
     serializer_class = RouteSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter, OrderingFilter]
     ordering_fields = ['is_active']
-    search_fields = ['recipient_email']
+    search_fields = ['recipient_emails']
 
     def get_queryset(self):
         return Route.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save()
+
 
 @message_docs
 class MessageViewSet(ReadOnlyModelViewSet):
@@ -58,7 +59,7 @@ class MessageViewSet(ReadOnlyModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter]
-    search_fields = ['apikey__key_hash', 'recipient_email', 'status']
+    search_fields = ['apikey__key_hash', 'recipient_emails', 'status']
 
     def get_queryset(self):
         if self.request.user.is_staff:
@@ -116,7 +117,7 @@ class SendEmailWithApiKeyView(GenericAPIView):
         try:
             with transaction.atomic():
                 message = serializer.save(
-                    apikey=apikey_obj, recipient_email=route.recipient_email)
+                    apikey=apikey_obj, recipient_emails=route.recipient_emails)
 
                 send_message_email(message)
                 increment_user_usage(apikey_obj)
