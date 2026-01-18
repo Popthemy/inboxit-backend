@@ -30,7 +30,11 @@ def send_message_email(message):
     '''
     try:
         from_email = settings.EMAIL_HOST_USER
-        to_email = [message.recipient_email]
+        to_email = to_email = [
+            email.strip()
+            for email in message.recipient_emails.split(",")
+            if email.strip()
+        ]
         subject = safe_email_header(message.subject)
         visitor_email = message.visitor_email
         now = timezone.now()
