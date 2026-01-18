@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import APIKey
-from apps.messaging.models import Route
 
 
 class ListApiKeySerializer(serializers.ModelSerializer):
@@ -44,13 +43,13 @@ class ApiKeySerializer(serializers.ModelSerializer):
         fields = ('id', 'user', 'key_hash', 'prefix', 'is_active', 'revoked_at',
                   'route', 'last_used_at', 'usage_count', 'created_at')
 
-    def get_user(self, obj):
+    def get_user(self, obj) -> dict:
         return {
             "id": obj.user.id,
             "user": obj.user.email,
         }
 
-    def get_route(self, obj):
+    def get_route(self, obj) -> dict:
         return {
             "id": obj.route.id,
             "channel": obj.route.channel,
