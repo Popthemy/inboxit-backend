@@ -62,7 +62,8 @@ route_docs = extend_schema_view(
     ),
     create=extend_schema(
         summary='Create a new  message delivery route',
-        description='Creates a new delivery route for the authenticated user. The channel has fixed choices check the ChannelEnum to pick a valid choices',
+        description="""Creates a new delivery route for the authenticated user. The channel has fixed choices check the ChannelEnum to pick a valid choices, 
+        recipient emails should be sent as a comma separated string (e.g., "email1@example.com,email2@example.com")""",
         request=RouteSerializer,
         responses={
             201: RouteSerializer,

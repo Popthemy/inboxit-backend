@@ -32,15 +32,14 @@ urlpatterns = [
     path('all-admin/', admin.site.urls),
     path('auth/', include('apps.account.urls')),
 
-    path('api/v1/',include(first_version)),
+    path('api/v1/', include(first_version)),
 
     # drf spectacular for documentation
     path('api/doc/', SpectacularAPIView.as_view(), name='schema'),
     path('redoc/', SpectacularRedocView.as_view(), name='redoc'),
     path('', SpectacularSwaggerView.as_view(
         url_name='schema'), name='swagger-ui'),
-] 
- 
+]
 
 if settings.DEBUG:
     import debug_toolbar

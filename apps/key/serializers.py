@@ -7,7 +7,8 @@ class ListApiKeySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APIKey
-        fields = ('id', 'route', 'prefix', 'is_active', 'channel', 'usage_count')
+        fields = ('id', 'route', 'prefix', 'is_active',
+                  'channel', 'usage_count')
         read_only_fields = ('prefix', 'is_active', 'channel', 'usage_count')
 
     def __init__(self, *args, **kwargs):
@@ -53,6 +54,6 @@ class ApiKeySerializer(serializers.ModelSerializer):
         return {
             "id": obj.route.id,
             "channel": obj.route.channel,
-            "recipient_email": obj.route.recipient_email,
+            "recipient_emails": obj.route.recipient_emails,
             "is_active": obj.route.is_active
         }
