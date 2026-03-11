@@ -35,6 +35,7 @@ class UserUsageView(GenericAPIView):
 class RouteViewSet(ModelViewSet):
     """
     Manage delivery routes (e.g., email recipient settings).
+    recipient emails should be passed as comma separated values (e.g., "email1@example.com,email2@example.com").
     """
     http_method_names = ['get', 'post', 'patch', 'delete']
     serializer_class = RouteSerializer

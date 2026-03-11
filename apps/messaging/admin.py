@@ -5,7 +5,7 @@ from .models import Message, Route, UserUsage
 
 @admin.register(Route)
 class RouteAdmin(admin.ModelAdmin):
-    list_display = ('channel', 'user')
+    list_display = ('channel', 'user', "recipient_emails", 'is_active')
 
 
 @admin.register(Message)
