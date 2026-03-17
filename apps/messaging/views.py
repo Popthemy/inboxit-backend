@@ -132,6 +132,6 @@ class SendEmailWithApiKeyView(GenericAPIView):
         except Exception as e:
             print({"error": str(e)})
             return Response(
-                {"detail": "An unexpected error occurred", },
+                {"detail": f"An unexpected error occurred:{str(e)}", },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

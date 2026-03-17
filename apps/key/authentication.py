@@ -17,17 +17,26 @@ class ApiKeyAuthentication(BaseAuthentication):
         raw = request.headers.get(
             "X-Api-Key") or request.query_params.get("apikey")
         if not raw:
-            return None
+            raise AuthenticationFailed(
+                "API key required in 'X-Api-Key' header or 'apikey' query parameter")
 
         key_hash = hash_key(raw)
         try:
-            obj = APIKey.objects.select_related("user").get(
-                key_hash=key_hash, is_active=True)
+            obj = APIKey.objects.select_related(
+                "user").filter(key_hash=key_hash).first()
+
+            if not obj:
+                raise AuthenticationFailed("Invalid API key")
+
+            if not obj.is_active:
+                raise AuthenticationFailed("API key invalid")
             return (obj.user, obj)
 
         except APIKey.DoesNotExist:
             raise AuthenticationFailed("Invalid or revoked API key")
 
+    def authenticate_header(self, request):
+        return "Api-Key"
 
 class CookieJWTAuthenticationScheme(OpenApiAuthenticationExtension):
     target_class = 'apps.key.authentication.ApiKeyAuthentication'
