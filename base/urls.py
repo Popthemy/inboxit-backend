@@ -23,16 +23,18 @@ admin.site.site_title = 'INBOXIT'
 admin.site.site_header = 'Welcome to INBOXIT Admin site'
 admin.site.index_title = 'Site admin'
 
-first_version = [
+second_version = [
     path('', include('apps.key.urls')),
     path('', include('apps.messaging.urls')),
+    path('users/', include('apps.account.urls')),
 ]
 
 urlpatterns = [
-    path('all-admin/', admin.site.urls),
-    path('auth/', include('apps.account.urls')),
+    # path('api/v1/', include(first_version)), #old patterns
+    path('api/v2/', include(second_version)), # new urls
 
-    path('api/v1/', include(first_version)),
+
+    path('all-admin/', admin.site.urls),
 
     # drf spectacular for documentation
     path('api/doc/', SpectacularAPIView.as_view(), name='schema'),

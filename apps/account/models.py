@@ -69,8 +69,10 @@ class CustomUser(LifecycleModelMixin, AbstractUser):
             refresh = RefreshToken.for_user(user=self)
 
             return {
+                "token_type": "Bearer",
                 'access_token': str(refresh.access_token),
-                'refresh_token': str(refresh)
+                'refresh_token': str(refresh),
+                "access_expires": settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME", None)
             }
 
         except TokenError as e:
@@ -83,11 +85,18 @@ class Profile(LifecycleModelMixin, models.Model):
         ('M', 'MALE'), ('F', 'FEMALE'), ('other', 'OTHER')
     )
 
+    class Membership(models.TextChoices):
+        FREE = "free", "Free"
+        PRO = "pro", "Pro"
+        ENTERPRISE = "enterprise", "Enterprise"
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True, on_delete=models.CASCADE, related_name='profile')
     email  = models.EmailField(max_length=100)
     first_name  = models.CharField(max_length=100,  blank=True)
     middle_name  = models.CharField(max_length=100,  blank=True)
     last_name  = models.CharField(max_length=100,  blank=True)
+    company = models.CharField(max_length=100,  blank=True)
+    plan = models.CharField(max_length=20, choices=Membership.choices)
     gender = models.CharField(max_length=50, choices=GENDER_CHOICES)
     bio = models.TextField(null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True)
@@ -97,15 +106,16 @@ class Profile(LifecycleModelMixin, models.Model):
 
     @property
     def full_name(self):
-        return f'{self.first_name} {self.middle_name} {self.last_name}'
-    
+        name = f'{self.first_name} {self.middle_name} {self.last_name}'
+        return name.title()
+
     @hook(AFTER_UPDATE,when_any=['first_name','last_name','email'], has_changed=True)
     def update_user_detials(self):
         user = CustomUser.objects.filter(id=self.user.id).update(email=self.email, first_name=self.first_name, last_name=self.last_name)
 
     def __str__(self):
         return f'{self.user.email} profile'
-    
+
     def get_age(self) -> int:
         '''Calculate the user age using the current date and date of birth'''
         dob = self.date_of_birth
@@ -116,7 +126,7 @@ class Profile(LifecycleModelMixin, models.Model):
             )
             return age
         return dob
-    
+
     def delete(self, *args, **kwargs):
         """
         Deletes the associated user, which will automatically delete this profile

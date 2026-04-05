@@ -12,6 +12,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenRefreshView as BaseTokenRefreshView
@@ -29,6 +30,8 @@ from ..models import Profile
 
 
 User = get_user_model()
+
+
 
 OTP_EMAIL_EXPIRY_TIME = settings.OTP_EMAIL_EXPIRY_TIME
 OTP_PASSWORD_EXPIRY_TIME = settings.OTP_PASSWORD_EXPIRY_TIME
@@ -217,7 +220,7 @@ class LoginView(GenericAPIView):
             return Response(data={
                 'status': 'Error',
                 'message': 'Login Unsuccessful',
-                'data': str(e)},
+                'data': getattr(e, 'detail', str(e))},
                 status=status.HTTP_400_BAD_REQUEST)
 
     def login_user(self, validated_data):
@@ -240,7 +243,32 @@ class LoginView(GenericAPIView):
 class TokenRefreshView(BaseTokenRefreshView):
     """ Allows a user to get new access token after their token has expired."""
     # serializer_class = LogoutSerializer
-    pass
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+
+            new_refresh_token = serializer.validated_data.get('refresh')
+
+            
+            # 2. Get the user object using the 'user_id' inside the token
+            token_obj = RefreshToken(new_refresh_token)
+            user_id = token_obj.payload.get('user_id')
+            user = User.objects.get(id=user_id)
+
+            # 3. Build your custom response
+            data = {
+                'status': 'success',
+                'message': 'Token refreshed successfully',
+                'data': {
+                    "token": user.get_jwt_tokens
+                }
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+        except (TokenError, User.DoesNotExist) as e:
+            return Response({'detail': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class MeView(GenericAPIView):
@@ -257,6 +285,7 @@ class MeView(GenericAPIView):
             return Response({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
         except Profile.DoesNotExist:
             return Response({'status': 'profile not found!'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class LogoutView(GenericAPIView):
     '''Log out user by a post request pass '''

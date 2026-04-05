@@ -230,7 +230,6 @@ TOKEN_REFRESH_400_BAD_REQUEST = OpenApiExample(
 )
 
 
-
 LOGOUT_USER_DESCRIPTION = """
    Invalidate a refresh token by blacklisting it. Requires authentication. Clients must send the refresh token in the request body.
 """
@@ -274,9 +273,17 @@ TOKEN_REFRESH_200_OK = OpenApiExample(
     '200 OK',
     description="If the provided refresh token is valid, a new access token is issued successfully.",
     value={
-        'status': 'Success',
-        'message': 'Token refreshed successfully.',
-        'access_token': 'new-access-token-here'
+
+        "status": "success",
+        "message": "Token refreshed successfully",
+        "data": {
+                "token": {
+                    "token_type": "Bearer",
+                    "access_token": "your access token here",
+                    "refresh_token": "your refresh token here",
+                    "access_expires": "86400.0"
+                }
+        }
     },
     response_only=True,
     status_codes=['200']
@@ -294,7 +301,6 @@ TOKEN_REFRESH_400_BAD_REQUEST = OpenApiExample(
     response_only=True,
     status_codes=['400']
 )
-
 
 
 PROFILE_REQUEST = OpenApiExample(

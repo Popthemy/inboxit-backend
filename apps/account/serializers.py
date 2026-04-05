@@ -87,16 +87,18 @@ class LogoutSerializer(serializers.Serializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField(source='user_id',read_only=True)
+    id = serializers.UUIDField(source='user_id', read_only=True)
     age = serializers.SerializerMethodField(read_only=True)
+    fullname = serializers.CharField(source="full_name",read_only=True)
 
     class Meta:
         model = Profile
-        fields = ('id', 'email', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'age',
+        fields = ('id', 'email', "fullname", 'first_name', 'middle_name', 'last_name', "company", "plan", 'date_of_birth', 'age',
                   'gender', 'bio', 'phone_number', 'created_at', 'updated_at')
+        read_only = ("plan",)
 
-    def get_age(self, instance) -> int:
-        return instance.get_age()
+    def get_age(self, obj) -> int:
+        return obj.get_age()
 
     def update(self, instance, validated_data):
         validated_data['user'] = self.context['user']
