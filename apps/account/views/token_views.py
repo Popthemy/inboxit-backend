@@ -250,12 +250,12 @@ class TokenRefreshView(BaseTokenRefreshView):
             serializer.is_valid(raise_exception=True)
 
             new_refresh_token = serializer.validated_data.get('refresh')
-
             
             # 2. Get the user object using the 'user_id' inside the token
             token_obj = RefreshToken(new_refresh_token)
             user_id = token_obj.payload.get('user_id')
             user = User.objects.get(id=user_id)
+            print("user:",user,user_id)
 
             # 3. Build your custom response
             data = {
