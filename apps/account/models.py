@@ -89,7 +89,7 @@ class Profile(LifecycleModelMixin, models.Model):
         FREE = "free", "Free"
         PRO = "pro", "Pro"
         ENTERPRISE = "enterprise", "Enterprise"
-
+    
     user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True, on_delete=models.CASCADE, related_name='profile')
     email  = models.EmailField(max_length=100)
     first_name  = models.CharField(max_length=100,  blank=True)

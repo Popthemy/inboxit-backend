@@ -6,11 +6,38 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.throttling import ScopedRateThrottle
+from django_filters.rest_framework import DjangoFilterBackend
 from apps.messaging.platforms.email.services import send_message_email, increment_user_usage
 from apps.key.authentication import ApiKeyAuthentication
-from apps.messaging.documentation.schemas import user_usage_doc, route_docs, message_docs, send_email_with_apikey_doc
+from apps.key.models import APIKey
+
+from apps.messaging.documentation.schemas import (user_usage_doc, route_docs, message_docs,
+                                                   send_email_with_apikey_doc, route_api_key_docs )
+
 from .models import Route, Message, UserUsage
-from .serializers import RouteSerializer, ListMessageSerializer, MessageSerializer, UserUsageSerializer
+from .Serializers.main_serializers import RouteSerializer, ListMessageSerializer, MessageSerializer, UserUsageSerializer
+from .Serializers.api_key_and_route_serializer import RouteApiKeySerializer
+
+
+@route_api_key_docs
+class RouteApiKeyViewSet(ModelViewSet):
+    """
+    Manage delivery routes (e.g., email recipient settings).
+    recipient emails should be passed as comma separated values or in config as list
+    """
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    serializer_class = RouteApiKeySerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ['is_active', 'is_deleted']
+    ordering_fields = ['is_active']
+    search_fields = ['recipient_emails']
+
+    def get_queryset(self):
+        return Route.objects.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
 
 @user_usage_doc
@@ -42,7 +69,7 @@ class RouteViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter, OrderingFilter]
     ordering_fields = ['is_active']
-    search_fields = ['recipient_emails']
+    search_fields = ['recipient_emails',"is_active"]
 
     def get_queryset(self):
         return Route.objects.filter(user=self.request.user)

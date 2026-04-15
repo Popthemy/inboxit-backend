@@ -1,8 +1,9 @@
-from drf_spectacular.utils import extend_schema_view, extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import OpenApiExample, extend_schema_view, extend_schema, OpenApiParameter, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
-from apps.messaging.serializers import UserUsageSerializer, RouteSerializer, MessageSerializer
+from apps.messaging.Serializers.api_key_and_route_serializer import RouteApiKeySerializer
+from apps.messaging.Serializers.main_serializers import UserUsageSerializer, RouteSerializer, MessageSerializer
 from .docs import (
-    ROUTE_400, ROUTE_404, ROUTE_500, ROUTE_204, MESSAGE_404, MESSAGE_500, SEND_EMAIL_200,
+    ROUTE_400, ROUTE_404, ROUTE_500, ROUTE_204, MESSAGE_404, MESSAGE_500, ROUTEAPIKEY_CREATE_201_RESPONSE, ROUTEAPIKEY_CREATE_400_RESPONSE, ROUTEAPIKEY_UPDATE_200_RESPONSE, ROUTEAPIKEY_DELETE_204_RESPONSE, SEND_EMAIL_200,
     SEND_EMAIL_400, SEND_EMAIL_401, SEND_EMAIL_403, SEND_EMAIL_429, SEND_EMAIL_500
 )
 
@@ -217,4 +218,88 @@ send_email_with_apikey_doc = extend_schema(
             description="Your API key (must be valid and active)."
         )
     ]
+)
+
+
+route_api_key_docs = extend_schema_view(
+    create=extend_schema(
+        summary='Create a delivery route  generate API keys.',
+        description=(
+                'Creates a new route for sending messages (e.g., email). '
+                'If api_key data is provided, it generates a test and live key. '
+                'Raw keys are returned only once in the response.'
+        ),
+        request=RouteApiKeySerializer,
+        responses={201: RouteApiKeySerializer, 400: OpenApiExample},
+        examples=[ROUTEAPIKEY_CREATE_201_RESPONSE,
+                  ROUTEAPIKEY_CREATE_400_RESPONSE],
+        tags=['Routes Api Keys'],
+    ),
+    # alllow search mails, filter by active and order by created at
+    list=extend_schema(
+        summary='List all delivery routes for the authenticated user.',
+        description=(
+                'Retrieves a list of all delivery routes associated with the authenticated user.\n\n'
+                'Supports searching by recipient email and ordering by active status.\n\n'
+                '**Searchable fields**: `recipient_email`\n'
+                '**Orderable fields**: `is_active`\n\n'
+                '**Examples:**\n'
+                '- `?search=john@example.com`\n'
+                '- `?ordering=is_active`\n'
+                '- `?ordering=-is_active`'
+                '- `?is_deleted=true`'
+        ),
+        responses={200: RouteApiKeySerializer(many=True)},
+        parameters=[
+            OpenApiParameter(
+                name='search',
+                description='Search by recipient email (case-insensitive).',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+            OpenApiParameter(
+                name='ordering',
+                description='Order by `is_active`. Use `-` prefix for descending order.',
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+            OpenApiParameter(
+                name='is_deleted',
+                description='Filter by deleted status (true or false).',
+                type=OpenApiTypes.BOOL,
+                location=OpenApiParameter.QUERY
+            ),
+        ],
+        tags=['Routes Api Keys'],
+    ),
+    retrieve=extend_schema(
+        summary='Retrieve a specific route by ID.',
+        description='Returns a single route and its API keys (safe info only).',
+        responses={200: RouteApiKeySerializer, 404: OpenApiExample},
+        tags=['Routes Api Keys'],
+    ),
+    partial_update=extend_schema(
+        summary='Partially update a message delivery route',
+        description='Updates one or more fields of an existing delivery route.',
+        request=RouteSerializer,
+        responses={
+                200: RouteApiKeySerializer,
+                400: ROUTEAPIKEY_CREATE_400_RESPONSE,
+                404: ROUTE_404,
+                500: ROUTE_500,
+        },
+        examples=[ROUTE_400, ROUTE_404, ROUTE_500],
+        tags=['Routes Api Keys'],
+    ),
+    destroy=extend_schema(
+        summary='Soft delete a message delivery route',
+        description='Soft delete a specific delivery route by ID.',
+        responses={
+            204: ROUTEAPIKEY_DELETE_204_RESPONSE,
+            404: OpenApiTypes.OBJECT,
+            500: OpenApiTypes.OBJECT,
+        },
+        examples=[ROUTEAPIKEY_DELETE_204_RESPONSE, ROUTE_404, ROUTE_500],
+        tags=['Routes Api Keys'],
+    )
 )
