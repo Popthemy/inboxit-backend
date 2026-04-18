@@ -177,6 +177,8 @@ REST_FRAMEWORK = {
         'register': '2/m',
         'login': '5/m',
         'send_email_with_apikey': '10/m',
+        "route":"20/day",
+        "apikey":"20/day",
     }
 }
 

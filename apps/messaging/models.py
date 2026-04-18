@@ -26,6 +26,7 @@ class Route(models.Model):
 
     # CHANNEL_EMAIL = "email"
     # CHANNEL_CHOICES = [(CHANNEL_EMAIL, "Email")]
+
     uid = models.UUIDField(default=uuid.uuid4, editable=False, null=True)
     label = models.CharField(max_length=100, blank=True)
     user = models.ForeignKey(
@@ -53,7 +54,7 @@ class Route(models.Model):
         ordering = ('-created_at', '-is_active')
 
     def __str__(self):
-        return f'{self.channel} - {self.recipient_emails} ({ "Active" if self.is_active else "Inactive"})'
+        return f'{self.channel} - {self.recipient_emails} - {self.label} ({ "Active" if self.is_active else "Inactive"})'
 
 
 class Message(models.Model):

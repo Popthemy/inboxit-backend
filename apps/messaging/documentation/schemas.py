@@ -1,7 +1,7 @@
 from drf_spectacular.utils import OpenApiExample, extend_schema_view, extend_schema, OpenApiParameter, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
-from apps.messaging.Serializers.api_key_and_route_serializer import RouteApiKeySerializer
-from apps.messaging.Serializers.main_serializers import UserUsageSerializer, RouteSerializer, MessageSerializer
+from apps.messaging.serializers.api_key_and_route_serializer import RouteApiKeySerializer
+from apps.messaging.serializers.main_serializers import UserUsageSerializer, RouteSerializer, MessageSerializer
 from .docs import (
     ROUTE_400, ROUTE_404, ROUTE_500, ROUTE_204, MESSAGE_404, MESSAGE_500, ROUTEAPIKEY_CREATE_201_RESPONSE, ROUTEAPIKEY_CREATE_400_RESPONSE, ROUTEAPIKEY_UPDATE_200_RESPONSE, ROUTEAPIKEY_DELETE_204_RESPONSE, SEND_EMAIL_200,
     SEND_EMAIL_400, SEND_EMAIL_401, SEND_EMAIL_403, SEND_EMAIL_429, SEND_EMAIL_500

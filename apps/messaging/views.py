@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Prefetch
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -11,12 +12,13 @@ from apps.messaging.platforms.email.services import send_message_email, incremen
 from apps.key.authentication import ApiKeyAuthentication
 from apps.key.models import APIKey
 
+from rest_framework.throttling import ScopedRateThrottle
 from apps.messaging.documentation.schemas import (user_usage_doc, route_docs, message_docs,
                                                    send_email_with_apikey_doc, route_api_key_docs )
 
 from .models import Route, Message, UserUsage
-from .Serializers.main_serializers import RouteSerializer, ListMessageSerializer, MessageSerializer, UserUsageSerializer
-from .Serializers.api_key_and_route_serializer import RouteApiKeySerializer
+from .serializers.main_serializers import RouteSerializer, ListMessageSerializer, MessageSerializer, UserUsageSerializer
+from .serializers.api_key_and_route_serializer import RouteApiKeySerializer
 
 
 @route_api_key_docs
@@ -25,16 +27,23 @@ class RouteApiKeyViewSet(ModelViewSet):
     Manage delivery routes (e.g., email recipient settings).
     recipient emails should be passed as comma separated values or in config as list
     """
+    # throttle_scope = 'route' # 20 per day
+    # throttle_classes = [ScopedRateThrottle]
     http_method_names = ['get', 'post', 'patch', 'delete']
     serializer_class = RouteApiKeySerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ['is_active', 'is_deleted']
-    ordering_fields = ['is_active']
+    filterset_fields = ['is_active', "keys__is_active",'is_deleted']
+    ordering_fields = ['is_active', "created_at"]
     search_fields = ['recipient_emails']
 
     def get_queryset(self):
-        return Route.objects.filter(user=self.request.user)
+        return Route.objects.filter(user=self.request.user).prefetch_related(
+            Prefetch(
+                "keys",
+                queryset=APIKey.objects.filter(is_active=True, is_revoked=False)
+            )
+        )
 
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -63,6 +72,7 @@ class RouteViewSet(ModelViewSet):
     """
     Manage delivery routes (e.g., email recipient settings).
     recipient emails should be passed as comma separated values (e.g., "email1@example.com,email2@example.com").
+    Only active apikey can be seen
     """
     http_method_names = ['get', 'post', 'patch', 'delete']
     serializer_class = RouteSerializer
@@ -72,7 +82,12 @@ class RouteViewSet(ModelViewSet):
     search_fields = ['recipient_emails',"is_active"]
 
     def get_queryset(self):
-        return Route.objects.filter(user=self.request.user)
+        return Route.objects.filter(user=self.request.user).prefetch_related(
+            Prefetch(
+                "keys",
+                queryset=APIKey.objects.filter(is_active=True, is_revoked=False)
+            )
+        )
 
     def perform_create(self, serializer):
         serializer.save()
