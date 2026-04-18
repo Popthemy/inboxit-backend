@@ -35,7 +35,7 @@ class RouteApiKeyViewSet(ModelViewSet):
     filter_backends = [SearchFilter, OrderingFilter, DjangoFilterBackend]
     filterset_fields = ['is_active', "keys__is_active",'is_deleted']
     ordering_fields = ['is_active', "created_at"]
-    search_fields = ['recipient_emails']
+    search_fields = ['recipient_emails', "label"]
 
     def get_queryset(self):
         return Route.objects.filter(user=self.request.user).prefetch_related(

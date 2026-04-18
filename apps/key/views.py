@@ -19,6 +19,7 @@ You can regenrate only 20 apikey per day and 5 per route
 @list_apikey_docs
 class ApiKeyView(GenericAPIView):
     """
+    
     f53qVR9rSSWibTd9Z1NL162wniyJsNhOled4jUxYbX8
     """
 
@@ -133,10 +134,9 @@ class RegenerateApiKeyView(GenericAPIView):
 
             print(apikey)
 
-            # )  # route__user=self.request.user
+            # route__user=self.request.user
             route = apikey.route
             env = apikey.env_choice
-
 
             # 1. Route-level protection
             check_route_regeneration_limit(route, user)
@@ -149,18 +149,19 @@ class RegenerateApiKeyView(GenericAPIView):
                     user=user
                 )
 
-                # 3. Revoke old keys
-                route.keys.filter(
-                    is_active=True,
-                    env_choice__in=env
-                ).update(is_active=False)
+                # # 3. Revoke old keys
+                # route.keys.filter(
+                #     is_active=True,
+                #     env_choice__in=env
+                # ).update(is_active=False)
 
-                # 4. Create new key
-            
-                key, raw = APIKey.issue_for(
-                        route=route,
-                        env_choice=env,
-                    )
+                # # 4. Create new key
+                # key, raw = APIKey.issue_for(
+                #         route=route,
+                #         env_choice=env,
+                # )
+
+                key, raw = apikey.regenerate()
 
                 new_key = {
                     env: {**self.get_serializer(key).data, "key": raw},
