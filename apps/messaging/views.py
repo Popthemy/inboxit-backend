@@ -147,7 +147,7 @@ class SendEmailWithApiKeyView(GenericAPIView):
         route = apikey_obj.route
 
         if not route or not route.is_active or route.channel.lower() != "email":
-            return Response({"detail": "No active email route for this API key."}, status=400)
+            return Response({"detail": "Email route not active."}, status=400)
 
         serializer = self.get_serializer(data=request.data)
 

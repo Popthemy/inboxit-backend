@@ -90,17 +90,19 @@ class RouteSerializer(serializers.ModelSerializer):
 
 
 class ListMessageSerializer(serializers.ModelSerializer):
+    apikey = serializers.StringRelatedField()
+
     class Meta:
         model = Message
         fields = (
-            "id", "uid",  "visitor_email", "recipient_emails", "subject", "sent_at", "status"
+            "id", "uid", "apikey", "visitor_email", "recipient_emails", "subject", "sent_at", "status"
         )
         read_only_fields = fields
 
 
 class MessageSerializer(serializers.ModelSerializer):
     website = serializers.CharField(required=False, allow_blank=True)
-
+    apikey = serializers.StringRelatedField()
     class Meta:
         model = Message
         fields = (

@@ -5,12 +5,14 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.filters import OrderingFilter,SearchFilter
-from apps.key.documentation.schemas import list_apikey_docs, details_apikey_docs
+from apps.key.documentation.schemas import list_apikey_docs, details_apikey_docs, regenerate_apikey_docs
 from .serializers import ApiKeySerializer, ListApiKeySerializer
 from .models import APIKey, KeyRegenerationLog
 from rest_framework.throttling import ScopedRateThrottle
 from django.db import transaction
+
 from .utils import check_route_regeneration_limit
+
 """
 You can regenrate only 20 apikey per day and 5 per route
 """
@@ -113,7 +115,7 @@ class RevokeApiKeyView(GenericAPIView):
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
+@regenerate_apikey_docs
 class RegenerateApiKeyView(GenericAPIView):
     """
     regenarate an apikey it uses the attribute of the the old key 
