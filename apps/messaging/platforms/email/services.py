@@ -11,6 +11,28 @@ def safe_email_header(value: str) -> str:
     return value.replace('\r', '').replace('\n', '')
 
 
+def extract_recipient_emails(message):
+    # 1. Resolve source (new → old fallback)
+    raw = None
+
+    if hasattr(message, "config") and message.config:
+        raw = message.config.get("recipient_emails")
+
+    if not raw:
+        raw = getattr(message, "recipient_emails", None)
+
+    # 2. Normalize
+    if not raw:
+        return []
+
+    if isinstance(raw, str):
+        return [email.strip() for email in raw.split(",") if email.strip()]
+
+    if isinstance(raw, (list, tuple, set)):
+        return [str(email).strip() for email in raw if str(email).strip()]
+
+    raise TypeError(f"Unsupported type for recipient_emails: {type(raw)}")
+
 def format_body(body):
     if isinstance(body, dict):
         # turn dict into HTML definition list
@@ -30,11 +52,7 @@ def send_message_email(message):
     '''
     try:
         from_email = settings.EMAIL_HOST_USER
-        to_email = message.route.config.get('recipients_email', [
-            email.strip()
-            for email in message.recipient_emails.split(",")
-            if email.strip()
-        ])
+        to_email = extract_recipient_emails(message)
         subject = safe_email_header(message.subject)
         visitor_email = message.visitor_email
         now = timezone.now()
@@ -82,15 +100,13 @@ def increment_user_usage(apikey_obj):
 
     now = timezone.now()
 
-    usage, _ = UserUsage.objects.select_for_update().get_or_create(user=apikey_obj.user)
+    usage, _ = UserUsage.objects.select_for_update().get_or_create(user=apikey_obj.route.user)
 
     if usage.last_request_at is None or usage.last_request_at.date() != now.date():
         usage.requests_today = 0
-    else:
-        usage.requests_today = F('requests_today') + \
-            1  # Use F() only when no reset
 
     usage.requests_today = F('requests_today') + 1
+    usage.total_requests += F('requests_today') + 1
     usage.last_request_at = now
 
     usage.save(update_fields=['total_requests',

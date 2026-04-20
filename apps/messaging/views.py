@@ -158,10 +158,17 @@ class SendEmailWithApiKeyView(GenericAPIView):
             )
 
         try:
-            with transaction.atomic():
-                message = serializer.save(
-                    apikey=apikey_obj, recipient_emails=route.recipient_emails)
+            recipient_emails = None  
+            if hasattr(route, "config") and route.config:
+                recipient_emails = route.config.get("recipient_emails", None)
+            if not recipient_emails:
+                recipient_emails = getattr(route, "recipients_emails", None)
 
+            with transaction.atomic():
+
+                message = serializer.save(
+                    apikey=apikey_obj, recipient_emails=recipient_emails)
+                print("initializing send email message")
                 send_message_email(message)
                 increment_user_usage(apikey_obj)
 
