@@ -19,7 +19,7 @@ from apps.messaging.documentation.schemas import (user_usage_doc, route_docs, me
 from .models import Route, Message, UserUsage
 from .serializers.main_serializers import RouteSerializer, ListMessageSerializer, MessageSerializer, UserUsageSerializer
 from .serializers.api_key_and_route_serializer import RouteApiKeySerializer
-
+from .utils import invalidate_dashboard_cache
 
 @route_api_key_docs
 class RouteApiKeyViewSet(ModelViewSet):
@@ -46,6 +46,11 @@ class RouteApiKeyViewSet(ModelViewSet):
         )
 
     def create(self, request, *args, **kwargs):
+        try:
+            invalidate_dashboard_cache(request.user.id)
+        except Exception as e:
+            print(f"cache invalidation in route apikey {str(e)}")
+            pass
         return super().create(request, *args, **kwargs)
 
 
@@ -165,12 +170,18 @@ class SendEmailWithApiKeyView(GenericAPIView):
                 recipient_emails = getattr(route, "recipients_emails", None)
 
             with transaction.atomic():
+                # invalidate cache
+                try:
+                    invalidate_dashboard_cache(apikey_obj.route.user.id)
+                except Exception as e:
+                    print(f"cache invalidation in route apikey {str(e)}")
+                    pass
 
                 message = serializer.save(
                     apikey=apikey_obj, recipient_emails=recipient_emails)
                 print("initializing send email message")
                 send_message_email(message)
-                increment_user_usage(apikey_obj)
+                # increment_user_usage(apikey_obj)
 
                 return Response({
                     "detail": f"Message sent successfully.",

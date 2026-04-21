@@ -56,6 +56,7 @@ LOCAL_APPS = [
     'apps.account',
     'apps.messaging',
     'apps.key',
+    'apps.analytics',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -127,6 +128,15 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+# using DB cache then run python manage.py createcachetable switch to redis later
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "my_cache_table",
+        "TIMEOUT": 60,
+    }
+}
 
 
 # Static files (CSS, JavaScript, Images)

@@ -23,14 +23,20 @@ admin.site.site_title = 'INBOXIT'
 admin.site.site_header = 'Welcome to INBOXIT Admin site'
 admin.site.index_title = 'Site admin'
 
-second_version = [
+first_version = [
     path('', include('apps.key.urls')),
     path('', include('apps.messaging.urls')),
     path('users/', include('apps.account.urls')),
 ]
+second_version = [
+    path('', include('apps.key.urls')),
+    path('', include('apps.messaging.urls')),
+    path('users/', include('apps.account.urls')),
+    path("dashboard/", include("apps.analytics.urls")),
+]
 
 urlpatterns = [
-    # path('api/v1/', include(first_version)), #old patterns
+    path('api/v1/', include(first_version)), #old patterns
     path('api/v2/', include(second_version)), # new urls
 
 
