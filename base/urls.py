@@ -29,6 +29,7 @@ first_version = [
     path('users/', include('apps.account.urls')),
 ]
 second_version = [
+    path("", include("apps.core.urls")),
     path('', include('apps.key.urls')),
     path('', include('apps.messaging.urls')),
     path('users/', include('apps.account.urls')),

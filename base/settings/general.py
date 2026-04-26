@@ -32,6 +32,7 @@ DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 # Application definition
 
 DJANGO_APPS = [
+    "daphne",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,10 +51,12 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "drf_spectacular_sidecar",
     "django_lifecycle_checks",
+    "channels",
 ]
 
 LOCAL_APPS = [
     'apps.account',
+    'apps.core',
     'apps.messaging',
     'apps.key',
     'apps.analytics',
@@ -153,8 +156,26 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'account.CustomUser'
 
-OTP_EMAIL_EXPIRY_TIME = os.getenv('OTP_EMAIL_VERIFY_EXPIRY_TIME')
-OTP_PASSWORD_EXPIRY_TIME = os.getenv('OTP_PASSWORD_RESET_EXPIRY_TIME')
+ASGI_APPLICATION = 'base.asgi.application'
+
+if os.getenv('REDIS_URL'):
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [os.getenv('REDIS_URL')],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
+
+OTP_EMAIL_EXPIRY_TIME = os.getenv('OTP_EMAIL_VERIFY_EXPIRY_TIME', '10')
+OTP_PASSWORD_EXPIRY_TIME = os.getenv('OTP_PASSWORD_RESET_EXPIRY_TIME', '10')
 FRONTEND_URL = os.environ.setdefault('FRONTEND_URL', 'http://localhost:3000')
 
 
@@ -183,6 +204,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.ScopedRateThrottle',
     ],
+    'EXCEPTION_HANDLER': 'apps.core.utils.exceptions.global_exception_handler',
     'DEFAULT_THROTTLE_RATES': {
         'register': '2/m',
         'login': '5/m',
@@ -261,4 +283,46 @@ SPECTACULAR_SETTINGS = {
 
 }
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/drf_backend.log',
+            'maxBytes': 1024 * 1024 * 5,  # 5MB
+            'backupCount': 5,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        # Custom logger for your app logic
+        'apps': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 

@@ -17,7 +17,6 @@ urlpatterns = [
     # forgotten password
     path('password-reset/', view=token_views.PasswordResetRequestOTPView.as_view(),
          name='password_reset'),
-    path('password-reset/verify-password-otp/',view=token_views.PasswordResetVerifyView.as_view(), name='verify_password_otp'),
+    path('password-reset/verify-password-otp/', view=token_views.PasswordResetVerifyView.as_view(), name='verify_password_otp'),
     path('<uuid:pk>/profiles/',token_views.ProfileView.as_view(),name='user_profiles'),
-
 ]

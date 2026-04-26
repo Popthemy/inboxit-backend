@@ -10,7 +10,6 @@ class DashboardMetricsView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class =DashboardMetricsSerializer
 
-
     @dashboard_metric_doc
     def get(self, request):
         qs = get_dashboard_metrics(request.user)

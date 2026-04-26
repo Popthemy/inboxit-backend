@@ -10,7 +10,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.permissions import IsAuthenticated
@@ -27,11 +27,11 @@ from ..serializers import (
 from ..utils import OTPService, send_email_with_url
 from ..permissions import IsAnonymous, IsProfileOwnerOrAdmin
 from ..models import Profile
+import logging
 
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
-
-
 
 OTP_EMAIL_EXPIRY_TIME = settings.OTP_EMAIL_EXPIRY_TIME
 OTP_PASSWORD_EXPIRY_TIME = settings.OTP_PASSWORD_EXPIRY_TIME
@@ -45,42 +45,47 @@ class RegisterView(GenericAPIView):
     '''
     serializer_class = UserSerializer
     permission_classes = [IsAnonymous]
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'register'
+    # throttle_classes = [ScopedRateThrottle]
+    # throttle_scope = 'register'
 
     @register_user_doc
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
 
-        try:
-            with transaction.atomic():
-                serializer.is_valid(raise_exception=True)
-                user = serializer.save()
+        # try:
+        with transaction.atomic():
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
 
-                email = user.email
-                purpose = 'email'
+            email = user.email
+            purpose = 'email'
 
-                otp = OTPService.generate_and_store_otp(
-                    email=email, purpose=purpose)
+            otp = OTPService.generate_and_store_otp(
+                email=email, purpose=purpose)
 
-                send_email_with_url(email=email,
-                                    subject='Verify Email OTP',
-                                    otp_code=otp,
-                                    purpose=purpose,
-                                    url_name=f"{FRONTEND_URL}/signup/verify_email_otp/",
-                                    template='account/verification_otp.html'
-                                    )
-                data = {
-                    'status': 'success',
-                    'message': 'Registration successful, please check your email to verify your account. '
-                    'If you didn\'t receive the OTP, you can use the resend verification link.',
-                    'data': serializer.data,
-                    'resend verification link':f"{FRONTEND_URL}{reverse('email_resend_otp')}",
-                }
-                return Response(data=data, status=status.HTTP_201_CREATED)
-        except Exception as e:
-            return Response({'error_message': f'Account creation failed {e}'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            send_email_with_url(email=email,
+                                subject='Verify Email OTP',
+                                otp_code=otp,
+                                purpose=purpose,
+                                url_name=f"{FRONTEND_URL}/signup/verify_email_otp/",
+                                template='account/verification_otp.html'
+                                )
+            logger.info(f"email sent to {email} for email and password registration")
+
+            data = {
+                'status': 'success',
+                'message': 'Registration successful, please check your email to verify your account. '
+                'If you didn\'t receive the OTP, you can use the resend verification link.',
+                'data': serializer.data,
+                'resend verification link':f"{FRONTEND_URL}{reverse('email_resend_otp')}",
+            }
+            return Response(data=data, status=status.HTTP_201_CREATED)
+    # except Exception as e:
+        #     # logs full traceback on server
+        #     logger.exception(f"Account creation failed {e}")
+
+        #     return Response({'error_message': f'Account creation failed {e}'},
+        #                     status=status.HTTP_400_BAD_REQUEST)
 
 
 class EmailVerifyOTPView(GenericAPIView):
@@ -95,29 +100,37 @@ class EmailVerifyOTPView(GenericAPIView):
     def post(self, request):
         email = request.query_params.get('email').strip()
         otp = request.data.get('otp').strip()
+        print(f"email verify otp {otp}, email {email}")
 
         if not email or not otp:
-            return Response(
-                {'message': 'Either email missing in link or OTP not provided.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise ValidationError(
+                "Either email missing in link or OTP not provided.")
+            # return Response(
+            #     {'message': 'Either email missing in link or OTP not provided.'},
+            #     status=status.HTTP_400_BAD_REQUEST
+            # )
 
-        try:
+        
+        with transaction.atomic():
             user = User.objects.get(email=email)
 
             is_verified = OTPService.verify_and_delete_otp(
                 email=email, raw_otp=otp, purpose='email')
 
             if not is_verified:
-                return Response(
-                    {'message': 'Invalid or expired OTP. Generate a new one.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                raise ValidationError(
+                    "Invalid or expired OTP. Generate a new one.")
+                # return Response(
+                #     {'message': 'Invalid or expired OTP. Generate a new one.'},
+                #     status=status.HTTP_400_BAD_REQUEST
+                # )
 
             user.is_active = True
             user.save()
 
             serializer = UserSerializer(user)
+            logger.info(f"verifying OTP for user {user}")
+
             data = {
                 'status': 'Success',
                 'message': 'Email verified successfully!',
@@ -125,16 +138,16 @@ class EmailVerifyOTPView(GenericAPIView):
                 'token': user.get_jwt_tokens
             }
             return Response(data=data, status=status.HTTP_200_OK)
-        except User.DoesNotExist:
-            return Response(
-                {'message': 'User not found.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            return Response(
-                {'message': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # except User.DoesNotExist:
+        #     return Response(
+        #         {'message': 'User not found.'},
+        #         status=status.HTTP_404_NOT_FOUND
+        #     )
+        # except Exception as e:
+        #     return Response(
+        #         {'message': str(e)},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
 
 
 class EmailResendOTPView(GenericAPIView):
@@ -146,50 +159,52 @@ class EmailResendOTPView(GenericAPIView):
         email = request.data.get('email')
 
         if not email:
-            return Response(
-                {"message": "Email is required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            raise ValidationError("Email is required")
+    
+        # check user exists
         try:
-            # check user exists
             user = User.objects.get(email=email)
-
-            if user.is_active:
-                return Response(
-                {"message": "User is already verified. You can login directly"},
-                status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # Generate and store new OTP
-            new_otp = OTPService.generate_and_store_otp(
-                email=email,
-                purpose='email'
-            )
-
-            # send mail
-            send_email_with_url(email=email,
-                                subject='Resend Email Verify OTP',
-                                otp_code=new_otp,
-                                purpose='email',
-                                url_name=f"{FRONTEND_URL}/verify_email_otp/",
-                                template='account/verification_otp.html'
-                                )
-
-            return Response(
-                {"message": "New OTP generated and sent to mail successfully "
-                    "If you didn\'t receive the OTP, because of bad connection you should retry "},
-                status=status.HTTP_200_OK
-            )
         except User.DoesNotExist:
+            raise NotFound("User not found.")
+
+        if user.is_active:
             return Response(
-                {'message': 'User not found.'},
-                status=status.HTTP_404_NOT_FOUND
+            {"message": "User is already verified. You can login directly"},
+            status=status.HTTP_400_BAD_REQUEST
             )
-        except Exception as e:
-            return Response(
-                {"message": f"Failed to resend OTP: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+
+        # Generate and store new OTP
+        new_otp = OTPService.generate_and_store_otp(
+            email=email,
+            purpose='email'
+        )
+
+        # send mail
+        send_email_with_url(email=email,
+                            subject='Resend Email Verify OTP',
+                            otp_code=new_otp,
+                            purpose='email',
+                            url_name=f"{FRONTEND_URL}/verify_email_otp/",
+                            template='account/verification_otp.html'
+                            )
+        
+        logger.info(f"Email generated and sent to {user} email")
+
+        return Response(
+            {"message": "New OTP generated and sent to mail successfully "
+                "If you didn\'t receive the OTP, because of bad connection you should retry "},
+            status=status.HTTP_200_OK
+        )
+        # except User.DoesNotExist:
+        #     return Response(
+        #         {'message': 'User not found.'},
+        #         status=status.HTTP_404_NOT_FOUND
+        #     )
+        # except Exception as e:
+        #     return Response(
+        #         {"message": f"Failed to resend OTP: {str(e)}"},
+        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        #     )
 
 
 class LoginView(GenericAPIView):
@@ -215,6 +230,8 @@ class LoginView(GenericAPIView):
                 'data': serializer.data,
                 'token': user.get_jwt_tokens
             }
+            logger.info(f"welcome back user {user}")
+
             return Response(data=data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(data={
@@ -265,6 +282,7 @@ class TokenRefreshView(BaseTokenRefreshView):
                     "token": user.get_jwt_tokens
                 }
             }
+            logger.info(f"User {user} used their refresh token")
             return Response(data, status=status.HTTP_200_OK)
 
         except (TokenError, User.DoesNotExist) as e:
@@ -280,8 +298,9 @@ class MeView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            print(request.user.profile)
+            # print(request.user.profile)
             serializer = self.get_serializer(request.user.profile)
+            logger.info(f"User {request.user} successfully retrived their profile")
             return Response({'status': 'success', 'data': serializer.data}, status=status.HTTP_200_OK)
         except Profile.DoesNotExist:
             return Response({'status': 'profile not found!'}, status=status.HTTP_404_NOT_FOUND)
@@ -303,6 +322,7 @@ class LogoutView(GenericAPIView):
             refresh_token = serializer.validated_data['refresh']
             token = RefreshToken(refresh_token)
             token.blacklist()
+            logger.info(f"User {user} logout")
 
             return Response(data={'message': 'Logout successful'},
                             status=status.HTTP_205_RESET_CONTENT)
@@ -335,6 +355,7 @@ class PasswordResetRequestOTPView(GenericAPIView):
                 url_name=f"{FRONTEND_URL}/verify_password_otp/",
                 template='account/password_reset_otp.html'
             )
+            logger.info(f"User {user} request to forgot password")
             return Response(
                 {"message": "Password reset OTP sent if email exists. "
                  "Check email and follow the link or retry"},
@@ -358,6 +379,7 @@ class PasswordResetVerifyView(GenericAPIView):
     serializer_class = PasswordResetSerializer
 
     def post(self, request):
+        print(f"email...... {request.data}")
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -366,24 +388,21 @@ class PasswordResetVerifyView(GenericAPIView):
         new_password = serializer.validated_data['new_password']
 
         # Verify OTP
-        if not OTPService.verify_and_delete_otp(
-            email=email, raw_otp=otp, purpose='password'
-        ):
-            return Response(
-                {"message": "Invalid or expired OTP"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if not OTPService.verify_and_delete_otp( email=email, raw_otp=otp, purpose='password' ):
+            raise ValidationError("Invalid or expired OTP")
 
         # Update password
         try:
             user = User.objects.get(email=email)
             user.set_password(new_password)
             user.save()
+            logger.info(f"User {user} reset their password")
 
             return Response(
                 {"message": "Password updated successfully. Kindly login"},
                 status=status.HTTP_200_OK
             )
+
         except User.DoesNotExist:
             return Response(
                 {"message": "User not found"},
@@ -428,6 +447,7 @@ class ProfileView(GenericAPIView):
             instance=profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        logger.info(f"profile for user {profile} updated their fields")
         return Response({
             'status': 'success',
             'message': 'successfully updated',

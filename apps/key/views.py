@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.filters import OrderingFilter,SearchFilter
+from rest_framework.filters import OrderingFilter, SearchFilter
 from apps.key.documentation.schemas import list_apikey_docs, details_apikey_docs, regenerate_apikey_docs
 from .serializers import ApiKeySerializer, ListApiKeySerializer
 from .models import APIKey, KeyRegenerationLog
@@ -21,7 +21,7 @@ You can regenrate only 20 apikey per day and 5 per route
 @list_apikey_docs
 class ApiKeyView(GenericAPIView):
     """
-    
+
     f53qVR9rSSWibTd9Z1NL162wniyJsNhOled4jUxYbX8
     """
 
@@ -98,9 +98,12 @@ class RevokeApiKeyView(GenericAPIView):
         try:
             key = self.get_object()
             if key.is_revoked:
-                return Response({'message':'key already revoked!'}, status=status.HTTP_200_OK)
+                return Response({'message': 'key already revoked!'}, status=status.HTTP_200_OK)
 
             key.revoke()
+            from .services.notification_service import KeyNotificationService
+            KeyNotificationService.api_key_revoked(key)
+
             serializer = self.get_serializer(key)
             data = {
                 'status': 'success',
@@ -114,6 +117,7 @@ class RevokeApiKeyView(GenericAPIView):
                              }, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 @regenerate_apikey_docs
 class RegenerateApiKeyView(GenericAPIView):
@@ -164,10 +168,12 @@ class RegenerateApiKeyView(GenericAPIView):
                 # )
 
                 key, raw = apikey.regenerate()
+                from .services.notification_service import KeyNotificationService
+                KeyNotificationService.api_key_regenerated(key)
 
-                new_key = {
-                    env: {**self.get_serializer(key).data, "key": raw},
-                }
+            new_key = {
+                env: {**self.get_serializer(key).data, "key": raw},
+            }
 
             return Response({
                 "status": "success",

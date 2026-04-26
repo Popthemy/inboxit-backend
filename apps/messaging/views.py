@@ -181,6 +181,8 @@ class SendEmailWithApiKeyView(GenericAPIView):
                     apikey=apikey_obj, recipient_emails=recipient_emails)
                 print("initializing send email message")
                 send_message_email(message)
+                from .services.notification_service import MessagingNotificationService
+                MessagingNotificationService.message_sent(message)
                 # increment_user_usage(apikey_obj)
 
                 return Response({

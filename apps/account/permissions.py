@@ -4,6 +4,7 @@ class IsAnonymous(permissions.BasePermission):
     '''
     Custom permission to only allow access to anonymous user(unauthenticated users).
     '''
+    message = "You do no have permission to perform this action. You are currently logged in."
     def has_permission(self, request, view):
         return not bool(request.user.is_authenticated)
     

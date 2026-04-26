@@ -4,6 +4,7 @@ from rest_framework import serializers
 from django.db import transaction
 from apps.key.serializers import ListApiKeySerializer
 from ..services.route_service import RouteService
+from ..services.notification_service import MessagingNotificationService
 from .main_serializers import RouteSerializer
 
 
@@ -41,6 +42,7 @@ class RouteApiKeySerializer(RouteSerializer):
             }
         """
         route, keys = RouteService.create_route(validated_data)
+        MessagingNotificationService.route_created(route)
 
         route._raw_api_keys = keys
         return route
