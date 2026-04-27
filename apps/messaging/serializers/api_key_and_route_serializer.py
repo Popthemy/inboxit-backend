@@ -43,7 +43,7 @@ class RouteApiKeySerializer(RouteSerializer):
         """
         user = self.context["request"].user
         print("user in route apikey serializer:", user)
-        # user = request.user
+        # user = self.context["request"].user
         # print("user in route apikey:",user)
         route, keys = RouteService.create_route(validated_data, user=user)
         MessagingNotificationService.route_created(route)

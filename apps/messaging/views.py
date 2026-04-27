@@ -53,12 +53,10 @@ class RouteApiKeyViewSet(ModelViewSet):
             pass
         return super().create(request, *args, **kwargs)
 
-    def context(self, **kwargs):
+    def get_serializer_context(self):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
-
-
 
 
 @user_usage_doc
