@@ -41,11 +41,16 @@ class RouteApiKeySerializer(RouteSerializer):
                 "env_choice": "production"
             }
         """
-        route, keys = RouteService.create_route(validated_data)
+        user = self.context["request"].user
+        print("user in route apikey serializer:", user)
+        # user = request.user
+        # print("user in route apikey:",user)
+        route, keys = RouteService.create_route(validated_data, user=user)
         MessagingNotificationService.route_created(route)
 
         route._raw_api_keys = keys
         return route
+
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

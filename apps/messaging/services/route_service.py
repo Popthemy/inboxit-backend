@@ -15,9 +15,9 @@ def create_api_keys(route):
 
 class RouteService:
     @staticmethod
-    def create_route(validated_data):
+    def create_route(validated_data, user):
         with transaction.atomic():
-            route = Route.objects.create(**validated_data)
+            route = Route.objects.create(**validated_data, user=user)
 
             keys = create_api_keys(route)
             return route, keys
