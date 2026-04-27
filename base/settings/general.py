@@ -54,6 +54,7 @@ THIRD_PARTY_APPS = [
     "channels",
 ]
 
+
 LOCAL_APPS = [
     'apps.account',
     'apps.core',
@@ -325,4 +326,3 @@ LOGGING = {
         },
     },
 }
-

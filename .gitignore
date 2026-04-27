@@ -5,6 +5,7 @@ db.sqlite3
 image/
 media/
 
+
 # ✅ Django: Ignore all migration files EXCEPT __init__.py
 **/migrations/*
 !**/migrations/__init__.py
