@@ -34,6 +34,15 @@ class PasswordResetSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """
+    {
+    "email": "horluwatemilorun@gmail.com",
+    "first_name": "temy",
+    "last_name": "popoola",
+    "password": "internship",
+    "confirm_password": "internship"
+}
+    """
     id = serializers.UUIDField(read_only=True)
     password = serializers.CharField(max_length=30, write_only=True)
     confirm_password = serializers.CharField(max_length=30, write_only=True)
@@ -87,16 +96,18 @@ class LogoutSerializer(serializers.Serializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField(source='user_id',read_only=True)
+    id = serializers.UUIDField(source='user_id', read_only=True)
     age = serializers.SerializerMethodField(read_only=True)
+    fullname = serializers.CharField(source="full_name", read_only=True)
 
     class Meta:
         model = Profile
-        fields = ('id', 'email', 'first_name', 'middle_name', 'last_name', 'date_of_birth', 'age',
+        fields = ('id', 'email', "fullname", 'first_name', 'middle_name', 'last_name', "company", "plan", 'date_of_birth', 'age',
                   'gender', 'bio', 'phone_number', 'created_at', 'updated_at')
+        read_only = ("plan",)
 
-    def get_age(self, instance) -> int:
-        return instance.get_age()
+    def get_age(self, obj) -> str:
+        return obj.get_age()
 
     def update(self, instance, validated_data):
         validated_data['user'] = self.context['user']

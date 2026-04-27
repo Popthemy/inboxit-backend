@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, extend_schema_view ,OpenApiExample,OpenApiResponse
+from drf_spectacular.utils import extend_schema, extend_schema_view ,OpenApiExample,OpenApiResponse, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from apps.account.serializers import ( 
   UserSerializer, LoginSerializer, LogoutSerializer, OTPSerializer,EmailSerializer,PasswordResetSerializer,
@@ -37,6 +37,15 @@ email_verify_otp_doc = extend_schema(
         400: OpenApiTypes.OBJECT,
         404: OpenApiTypes.OBJECT
     },
+       parameters=[
+        OpenApiParameter(
+            name='email',
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description='Email address to verify'
+        )
+    ],
     examples=[VERIFY_EMAIL_OTP_SUCCESS_RESPONSE,
               VERIFY_EMAIL_OTP_FAILURE_RESPONSE, VERIFY_EMAIL_OTP_USER_NOT_FOUND_RESPONSE],
     tags=['Authentication']
@@ -202,6 +211,15 @@ password_reset_verify = extend_schema(
             ]
         ),
     },
+    parameters=[
+        OpenApiParameter(
+            name='email',
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description='Email tied to the account to verify'
+        )
+    ],
     tags=["Authentication & Password Reset"]
 )
 

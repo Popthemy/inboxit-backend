@@ -64,3 +64,29 @@ details_apikey_docs = extend_schema_view(
     tags=['Apikeys']
   )
 )
+
+
+regenerate_apikey_docs = extend_schema(
+    summary='Regenerate API Key 5/route',
+    description=(
+        'Regenerates an API key for a given route and environment.\n\n'
+
+        '### 🔄 What Happens\n'
+        '- The current active API key for the environment is **revoked immediately**.\n'
+        '- A new API key is generated and returned.\n'
+        '- Any previously active keys for the same route and environment are also revoked.\n\n'
+
+        '### 🔒 Guarantees\n'
+        '- At any time, there will be **only one active API key per route per environment**.\n'
+
+        '### 🔑 Key Handling\n'
+        '- The new raw API key is returned **only once**.\n'
+        '- Store it securely; it cannot be retrieved later.\n\n'
+
+        '### ⚠️ Important\n'
+        '- For each route **5 regeneration perday**.\n'
+    ),
+    responses={200: OpenApiTypes.OBJECT,
+               400: OpenApiTypes.OBJECT, 404: OpenApiTypes.OBJECT},
+    tags=['Apikeys'],
+)

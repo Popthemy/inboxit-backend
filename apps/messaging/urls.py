@@ -1,10 +1,11 @@
 from rest_framework.routers import DefaultRouter
-from .views import RouteViewSet, MessageViewSet, SendEmailWithApiKeyView, UserUsageView
+from .views import RouteViewSet, MessageViewSet, SendEmailWithApiKeyView, UserUsageView,RouteApiKeyViewSet
 from django.urls import path
 
 
 router = DefaultRouter()
 router.register("routes", RouteViewSet, basename="routes")
+router.register("route-apikeys", RouteApiKeyViewSet, basename="routes_apikey")
 router.register("messages", MessageViewSet, basename="messages")
 
 

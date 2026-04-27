@@ -1,42 +1,81 @@
 import secrets
-from django.db import models
+import uuid
+from django.db import models, transaction
 from django.conf import settings
 from django.utils import timezone
 from .utils import hash_key
 
 
 class APIKey(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='api_keys')
-    key_hash = models.CharField(max_length=64,unique=True)
-    prefix = models.CharField(max_length=12, db_index=True)
+
+    class Environment(models.TextChoices):
+        TEST = "test", "Test"
+        LIVE = "live", "Live"
+
+    uid = models.UUIDField(default=uuid.uuid4, editable=False, null=True)
+
+    env_choice = models.CharField(
+        max_length=10, choices=Environment.choices, default=Environment.TEST)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                             null=True, blank=True, related_name='api_keys')
+    key_hash = models.CharField(max_length=64, unique=True)
+    prefix = models.CharField(max_length=14, db_index=True)
     is_active = models.BooleanField(default=True)
-    revoked_at = models.DateTimeField(null=True,blank=True)
+    is_revoked = models.BooleanField(default=False)
+    revoked_at = models.DateTimeField(null=True, blank=True)
     route = models.ForeignKey(
-        "messaging.Route", null=True, blank=True, on_delete=models.SET_NULL, related_name="keys"
+        "messaging.Route", on_delete=models.CASCADE, related_name="keys"
     )
     last_used_at = models.DateTimeField(null=True, blank=True)
     usage_count = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField( auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ('-created_at','-is_active')
+        ordering = ('-is_active', '-created_at', "-last_used_at")
 
     def __str__(self):
         return f'{self.prefix}'
 
     @staticmethod
-    def issue_for(user, route=None):
-        raw = secrets.token_urlsafe(32)
+    def issue_for(route, env_choice):
+        env_choice = env_choice or APIKey.Environment.TEST
+        raw = f"ii_{env_choice}_{secrets.token_urlsafe(32)}"
         key_hash = hash_key(raw)
-        prefix = raw[:8]
+        prefix = f"ii_{env_choice}_{raw[-6:]}"
         obj = APIKey.objects.create(
-            user=user, key_hash=key_hash, prefix=prefix, route=route
+            key_hash=key_hash, prefix=prefix, route=route, env_choice=env_choice
         )
         return obj, raw
 
     def revoke(self):
-        self.is_active = False
-        self.revoked_at = timezone.now()
-        self.save(update_fields=["is_active", "revoked_at"])
+        """Revoke the API key by marking it as inactive and setting the revoked_at timestamp."""
+        APIKey.objects.filter(
+            route=self.route,
+            env_choice=self.env_choice,
+            is_active=True
+        ).update(
+            is_active=False,
+            is_revoked=True,
+            revoked_at=timezone.now()
+        )
+
+    def regenerate(self):
+        """
+        Revoke the current key and issue a new one with the same route and user.
+        """
+        with transaction.atomic():
+            self.revoke()
+            new_key, raw = APIKey.issue_for(
+                route=self.route, env_choice=self.env_choice)
+            return new_key, raw
 
 
+class KeyRegenerationLog(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True, editable=False)
+    route = models.ForeignKey("messaging.Route", on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.id} - {self.route.label}"

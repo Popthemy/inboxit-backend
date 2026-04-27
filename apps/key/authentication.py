@@ -23,14 +23,15 @@ class ApiKeyAuthentication(BaseAuthentication):
         key_hash = hash_key(raw)
         try:
             obj = APIKey.objects.select_related(
-                "user").filter(key_hash=key_hash).first()
+                "route__user").filter(key_hash=key_hash, is_active=True,
+                                      revoked_at__isnull=True).first()
 
             if not obj:
                 raise AuthenticationFailed("Invalid API key")
 
-            if not obj.is_active:
+            if not obj.is_active or not obj.route:
                 raise AuthenticationFailed("API key invalid")
-            return (obj.user, obj)
+            return (obj.route.user, obj)
 
         except APIKey.DoesNotExist:
             raise AuthenticationFailed("Invalid or revoked API key")

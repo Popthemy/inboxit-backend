@@ -28,3 +28,5 @@ EMAIL_PORT = 465
 EMAIL_HOST_USER = os.getenv("EMAIL")
 EMAIL_HOST_PASSWORD = os.getenv("PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("EMAIL")
+
+# REDIS_URL = redis_url

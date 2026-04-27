@@ -6,7 +6,6 @@ from rest_framework.authentication import CSRFCheck, get_authorization_header
 
 SAFE_METHODS = ('GET', "HEADS", "OPTIONS")
 
-
 class CookieJWTAuthentication(JWTAuthentication):
 
     def enforce_csrf(self, request):
@@ -38,7 +37,6 @@ class CookieJWTAuthentication(JWTAuthentication):
             validated = self.get_validated_token(auth[1].decode())
             return self.get_user(validated), validated
         return None
-
 
 
 class CookieJWTAuthenticationScheme(OpenApiAuthenticationExtension):

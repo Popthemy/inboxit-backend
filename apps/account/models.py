@@ -4,12 +4,15 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.timezone import now
 from django.conf import settings
 from django_lifecycle import LifecycleModelMixin, hook, AFTER_UPDATE, AFTER_CREATE
-from django_lifecycle.conditions import WhenFieldValueIs,WhenFieldValueWas
+from django_lifecycle.conditions import WhenFieldValueIs, WhenFieldValueWas
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.response import Response
 from rest_framework import status
 from .manager import CustomBaseUserManager
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class VerifyOTP(models.Model):
@@ -20,7 +23,8 @@ class VerifyOTP(models.Model):
     ]
     email = models.EmailField()
     otp = models.CharField(max_length=64)
-    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, db_index=True)
+    purpose = models.CharField(
+        max_length=20, choices=PURPOSE_CHOICES, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -33,7 +37,8 @@ class VerifyOTP(models.Model):
 
 class CustomUser(LifecycleModelMixin, AbstractUser):
     '''email, password, first name, last name, dob, age'''
-    id = models.UUIDField(default=uuid4, primary_key=True,unique=True, editable=False)
+    id = models.UUIDField(default=uuid4, primary_key=True,
+                          unique=True, editable=False)
     username = None
     email = models.EmailField(unique=True)
     agree_to_privacy_policy = models.BooleanField(default=False)
@@ -50,32 +55,31 @@ class CustomUser(LifecycleModelMixin, AbstractUser):
     def full_name(self):
         return self.get_full_name()
 
-    @hook(AFTER_UPDATE,
-          condition=WhenFieldValueWas('is_active', False) & WhenFieldValueIs('is_active', True))
+    @hook(AFTER_UPDATE, when='is_active', was=False, is_now=True)
     def create_profile(self):
-        try:
-            Profile.objects.get_or_create(
-                user=self, email=self.email, first_name=self.first_name, last_name=self.last_name)
-            # Profile.objects.create(user=self, email=self.email, first_name=self.first_name, last_name=self.last_name)
-        except Exception as e:
-            # print(f'user has a previous  profile not a new user: {self.email}, error:{str(e)}')
-            pass
+        if Profile.objects.filter(user=self).exists():
+            return
+
+        Profile.objects.create(
+            user=self,
+            email=self.email,
+            first_name=self.first_name,
+            last_name=self.last_name,
+        )
+
+        logging.info(f"profile create from customuser for {self.email}")
 
     @property
     def get_jwt_tokens(self):
         """Get both the refresh and access token for user"""
+        refresh = RefreshToken.for_user(user=self)
 
-        try:
-            refresh = RefreshToken.for_user(user=self)
-
-            return {
-                'access_token': str(refresh.access_token),
-                'refresh_token': str(refresh)
-            }
-
-        except TokenError as e:
-            data = {'status': 'error', 'message': str(e)}
-            return Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        return {
+            "token_type": "Bearer",
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh),
+            "access_expires": settings.SIMPLE_JWT.get("ACCESS_TOKEN_LIFETIME", None)
+        }
 
 
 class Profile(LifecycleModelMixin, models.Model):
@@ -83,12 +87,24 @@ class Profile(LifecycleModelMixin, models.Model):
         ('M', 'MALE'), ('F', 'FEMALE'), ('other', 'OTHER')
     )
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True, on_delete=models.CASCADE, related_name='profile')
-    email  = models.EmailField(max_length=100)
-    first_name  = models.CharField(max_length=100,  blank=True)
-    middle_name  = models.CharField(max_length=100,  blank=True)
-    last_name  = models.CharField(max_length=100,  blank=True)
-    gender = models.CharField(max_length=50, choices=GENDER_CHOICES)
+    class Membership(models.TextChoices):
+        FREE = "free", "Free"
+        PRO = "pro", "Pro"
+        ENTERPRISE = "enterprise", "Enterprise"
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, primary_key=True,
+                                on_delete=models.CASCADE, related_name='profile')
+    email = models.EmailField(max_length=100)
+    first_name = models.CharField(max_length=100,  blank=True)
+    middle_name = models.CharField(max_length=100,  blank=True)
+    last_name = models.CharField(max_length=100,  blank=True)
+
+    # new fields
+    company = models.CharField(max_length=100,  blank=True)
+    plan = models.CharField(
+        max_length=20, choices=Membership.choices, default='free')
+    gender = models.CharField(
+        max_length=50, choices=GENDER_CHOICES, null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
@@ -97,16 +113,18 @@ class Profile(LifecycleModelMixin, models.Model):
 
     @property
     def full_name(self):
-        return f'{self.first_name} {self.middle_name} {self.last_name}'
-    
-    @hook(AFTER_UPDATE,when_any=['first_name','last_name','email'], has_changed=True)
+        name = f'{self.first_name} {self.middle_name} {self.last_name}'
+        return name.title()
+
+    @hook(AFTER_UPDATE, when_any=['first_name', 'last_name', 'email'], has_changed=True)
     def update_user_detials(self):
-        user = CustomUser.objects.filter(id=self.user.id).update(email=self.email, first_name=self.first_name, last_name=self.last_name)
+        user = CustomUser.objects.filter(id=self.user.id).update(
+            email=self.email, first_name=self.first_name, last_name=self.last_name)
 
     def __str__(self):
         return f'{self.user.email} profile'
-    
-    def get_age(self) -> int:
+
+    def get_age(self) -> str:
         '''Calculate the user age using the current date and date of birth'''
         dob = self.date_of_birth
         if dob:
@@ -115,8 +133,8 @@ class Profile(LifecycleModelMixin, models.Model):
                 (today.month, today.day) < (dob.month, dob.day)
             )
             return age
-        return dob
-    
+        return ""
+
     def delete(self, *args, **kwargs):
         """
         Deletes the associated user, which will automatically delete this profile
