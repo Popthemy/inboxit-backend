@@ -202,10 +202,10 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'apps.core.utils.exceptions.global_exception_handler',
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.ScopedRateThrottle',
     ],
-    'EXCEPTION_HANDLER': 'apps.core.utils.exceptions.global_exception_handler',
     'DEFAULT_THROTTLE_RATES': {
         'register': '2/m',
         'login': '5/m',

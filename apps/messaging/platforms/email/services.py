@@ -68,8 +68,9 @@ def send_message_email(message):
             # f"{settings.FRONTEND_URL}{message.get_absolute_url()}{subject.replace(' ', '-')}" if settings.FRONTEND_URL else '#',
             'preview_link': "#",
             # f"{settings.FRONTEND_URL}dashboard" if settings.FRONTEND_URL else '#',
-            'dashboard_link':  '#',
+            'dashboard_link':  'https://inboxit-frontend.vercel.app/dashboard' if settings.FRONTEND_URL else '#',
             'time': now,
+            'is_paid': message.apikey.route.user.profile.membership != "free" if hasattr(message.apikey.route.user.profile, "membership") else False
         }
 
         html_content = render_to_string(

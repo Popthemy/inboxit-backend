@@ -105,10 +105,7 @@ class EmailVerifyOTPView(GenericAPIView):
         if not email or not otp:
             raise ValidationError(
                 "Either email missing in link or OTP not provided.")
-            # return Response(
-            #     {'message': 'Either email missing in link or OTP not provided.'},
-            #     status=status.HTTP_400_BAD_REQUEST
-            # )
+
 
         
         with transaction.atomic():
@@ -120,10 +117,7 @@ class EmailVerifyOTPView(GenericAPIView):
             if not is_verified:
                 raise ValidationError(
                     "Invalid or expired OTP. Generate a new one.")
-                # return Response(
-                #     {'message': 'Invalid or expired OTP. Generate a new one.'},
-                #     status=status.HTTP_400_BAD_REQUEST
-                # )
+            
 
             user.is_active = True
             user.save()
@@ -138,16 +132,6 @@ class EmailVerifyOTPView(GenericAPIView):
                 'token': user.get_jwt_tokens
             }
             return Response(data=data, status=status.HTTP_200_OK)
-        # except User.DoesNotExist:
-        #     return Response(
-        #         {'message': 'User not found.'},
-        #         status=status.HTTP_404_NOT_FOUND
-        #     )
-        # except Exception as e:
-        #     return Response(
-        #         {'message': str(e)},
-        #         status=status.HTTP_400_BAD_REQUEST
-        #     )
 
 
 class EmailResendOTPView(GenericAPIView):
